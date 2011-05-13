@@ -1,0 +1,18 @@
+name: MessageManager
+main: edgruberman.bukkit.messagemanager.Main
+version: %VERSION%
+author: EdGruberman (ed@rjump.com)
+commands:
+    say:
+        description: Broadcasts a message to all players as Server.
+        usage: /<command> <Message>
+    tell:
+        description: Sends a private message to a player as Server.
+        usage: /<command> <Player> <Message>
+    broadcast:
+        description: Broadcasts a message to all players.
+        usage: /<command> [(+|-)timestamp ][<Level> ]<Message>
+    send:
+        description: Sends a private message to a player.
+        usage: /<command> <Player> [(+|-)timestamp ][<Level> ]<Message>
+

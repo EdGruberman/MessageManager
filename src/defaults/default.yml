@@ -1,0 +1,94 @@
+﻿level:
+    broadcast: INFO
+    send: INFO
+    log: INFO
+timestamp:
+    color: ~
+    format: ~ # SimpleDateFormat
+broadcast:
+    level: ~
+    format: ~ # 1 = Message, 2 = Formatted Timestamp
+    log: ~ # 1 = Formatted Message
+    player:
+        chat:
+            priority: ~
+            level: ~
+            format: ~ # 1 = Message, 2 = Player Name
+        say: 
+            level: ~
+            format: ~ # 1 = Message, 2 = Player Name
+        join:
+            priority: ~
+            level: ~
+            format: ~ # 1 = Player Name
+        quit:
+            priority: ~
+            level: ~
+            format: ~ # 1 = Player Name
+        kick:
+            priority: ~
+            level: ~
+            format: ~ # 1 = Player Name
+    server:
+        say:
+            level: ~
+            format: ~ # 1 = Message
+send:
+    level: ~
+    format: ~ # 1 = Message, 2 = Formatted Timestamp
+    log: ~  # 1 = Formatted Message, 2 = Player Name
+    player:
+        level: ~
+        tell: ~ # 1 = Message, 2 = Player Name
+    server:
+        level: ~
+        tell: ~ # 1 = Message
+log:
+    level: ~
+    format: ~  # 1 = Formatted Message, 2 = Plugin Name
+playerLogin:
+    priority: ~
+    format: ~
+    banned:
+        level: ~
+        reason: ~
+    full:
+        level: ~
+        reason: ~
+    whitelist:
+        level: ~
+        reason: ~
+colors:
+    SEVERE:
+        send: RED
+        broadcast: DARK_RED
+    WARNING:
+        send: YELLOW
+        broadcast: GOLD
+    NOTICE:
+        send: LIGHT_PURPLE
+        broadcast: DARK_PURPLE
+    INFO:
+        send: WHITE
+        broadcast: WHITE
+    STATUS:
+        send: GREEN
+        broadcast: DARK_GREEN
+    EVENT:
+        send: GRAY
+        broadcast: DARK_GRAY
+    CONFIG:
+        send: AQUA
+        broadcast: DARK_AQUA
+    RIGHTS:
+        send: BLUE
+        broadcast: DARK_BLUE
+    FINE:
+        send: BLACK
+        broadcast: BLACK
+    FINER:
+        send: BLACK
+        broadcast: BLACK
+    FINEST:
+        send: BLACK
+        broadcast: BLACK
