@@ -175,14 +175,29 @@ public final class MessageManager {
      * Determine where to send message to based on sender class type.
      * If sender is a player, it will send to player, otherwise it assumes
      * it is a console command sends the response to the log.
+     * (Include timestamp.)
      * 
      * @param sender Original command sender.
      * @param level Importance level of message.
      * @param message Text to respond to sender with.
      */
     public void respond(CommandSender sender, MessageLevel level, String message) {
+        this.respond(sender, level, message, true);
+    }
+    
+    /**
+     * Determine where to send message to based on sender class type.
+     * If sender is a player, it will send to player, otherwise it assumes
+     * it is a console command sends the response to the log.
+     * 
+     * @param sender Original command sender.
+     * @param level Importance level of message.
+     * @param message Text to respond to sender with.
+     * @param isTimestamped Include timestamp in message if sender is a player.
+     */
+    public void respond(CommandSender sender, MessageLevel level, String message, boolean isTimestamped) {
         if (sender instanceof Player) {
-            this.send((Player) sender, level, message);
+            this.send((Player) sender, level, message, isTimestamped);
         } else {
             this.log(level, message);
         }
