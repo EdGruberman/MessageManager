@@ -100,6 +100,22 @@ public class Main extends org.bukkit.plugin.java.JavaPlugin {
         );
     }
     
+    public void broadcastMe(CommandSender sender, String message) {
+        String type;
+        String name = null;
+        if (sender instanceof Player) {
+            type = "player";
+            name = ((Player) sender).getDisplayName();
+        } else {
+            type = "server";
+        }
+        
+        Main.messageManager.broadcast(
+                this.getMessageLevel("broadcast." + type + ".me")
+                , String.format(this.getMessageFormat("broadcast." + type + ".me"), message, name)
+        );
+    }
+    
     public void sendTell(CommandSender sender, Player target, String message) {
         String type;
         String name = null;

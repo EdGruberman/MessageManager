@@ -17,6 +17,9 @@ broadcast:
         say:
             level: INFO
             format: '<%2$s> %1$s' # 1 = Message, 2 = Player Name
+        me:
+            level: INFO
+            format: '* %2$s %1s' # 1 = Message, 2 = Player Name
         join:
             priority: NORMAL
             level: CONFIG
@@ -33,6 +36,9 @@ broadcast:
         say:
             level: INFO
             format: '<<Server>> %1$s' # 1 = Message
+        me:
+            level: INFO
+            format: '* <Server> %1s' # 1 = Message
 send:
     level: INFO
     format: '%3$s%2$s-> %1$s' # 1 = Message, 2 = Color, 3 = Formatted Timestamp

@@ -30,6 +30,9 @@ public class CommandManager implements CommandExecutor {
         if (label.toLowerCase().equals("say"))
             return this.executeSay(sender, this.join(split));
         
+        else if (label.toLowerCase().equals("me"))
+            return this.executeMe(sender, this.join(split));
+        
         else if (label.toLowerCase().equals("tell"))
             return this.executeTell(sender, this.join(split));
         
@@ -38,7 +41,7 @@ public class CommandManager implements CommandExecutor {
         
         else if (label.toLowerCase().equals("send"))
             return this.executeSend(sender, this.join(split));
-
+        
         return false;
     }
     
@@ -49,6 +52,17 @@ public class CommandManager implements CommandExecutor {
         }
         
         this.plugin.broadcastSay(sender, Main.colorize(message.trim()));
+        
+        return true;
+    }
+    
+    private boolean executeMe(CommandSender sender, String message) {
+        if (message.length() == 0) {
+            Main.messageManager.respond(sender, MessageLevel.SEVERE, "Syntax Error: /me <Message>");
+            return true;
+        }
+        
+        this.plugin.broadcastMe(sender, Main.colorize(message.trim()));
         
         return true;
     }
