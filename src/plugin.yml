@@ -6,6 +6,9 @@ commands:
     say:
         description: Broadcasts a message to all players as Server.
         usage: /<command> <Message>
+    me:
+        description: Describes the player performing an action.
+        usage: /<command> <Message>
     tell:
         description: Sends a private message to a player as Server.
         usage: /<command> <Player> <Message>
@@ -15,7 +18,4 @@ commands:
     send:
         description: Sends a private message to a player.
         usage: /<command> <Player> [(+|-)timestamp ][<Level> ]<Message>
-    me:
-        description: Describes the player performing an action.
-        usage: /<command> <Message>
-
+        

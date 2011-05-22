@@ -15,6 +15,7 @@ public class CommandManager implements CommandExecutor {
         this.plugin = plugin;
         
         this.plugin.getCommand("say").setExecutor(this);
+        this.plugin.getCommand("me").setExecutor(this);
         this.plugin.getCommand("tell").setExecutor(this);
         this.plugin.getCommand("broadcast").setExecutor(this);
         this.plugin.getCommand("send").setExecutor(this);
