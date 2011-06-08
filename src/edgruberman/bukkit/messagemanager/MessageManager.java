@@ -102,7 +102,7 @@ public final class MessageManager {
     public void log(MessageLevel level, String message, Throwable e) {
         if (e != null) message = message.replaceAll("\n", "   ");
         for (String messageLine : message.split("\n")) {
-            messageLine = Main.that.formatLog(level, messageLine, this.owner);
+            messageLine = this.formatLog(level, messageLine, this.owner);
             this.logger.log(level, messageLine, e);
         }
     }
@@ -164,9 +164,11 @@ public final class MessageManager {
         
         if (!this.isSendLevel(level)) return;
         
+        message = Main.colorize(message);
+        
         for (String messageLine : message.split("\n")) {
-            messageLine = Main.that.formatSend(level, messageLine, isTimestamped);
-            this.log(level, Main.that.formatSendLog(messageLine, player));
+            messageLine = this.formatSend(level, messageLine, isTimestamped);
+            this.log(level, this.formatSendLog(messageLine, player));
             player.sendMessage(messageLine);
         }
     }
@@ -257,10 +259,48 @@ public final class MessageManager {
         
         if (!this.isBroadcastLevel(level)) return;
         
+        message = Main.colorize(message);
+        
         for (String messageLine : message.split("\n")) {
-            messageLine = Main.that.formatBroadcast(level, messageLine, isTimestamped);
-            this.log(level, Main.that.formatBroadcastLog(messageLine));
+            messageLine = this.formatBroadcast(level, messageLine, isTimestamped);
+            this.log(level, this.formatBroadcastLog(messageLine));
             this.owner.getServer().broadcastMessage(messageLine);
         }
+    }
+    
+    public String formatBroadcast(MessageLevel level, String message) {
+        return this.formatBroadcast(level, message, true);
+    }
+    
+    public String formatBroadcast(MessageLevel level, String message, boolean isTimestamped) {
+        return String.format(Main.that.getMessageFormat("broadcast")
+                , message
+                , level.getBroadcastColor().toString()
+                , (isTimestamped ? Main.that.getTimestamp() : "")
+        );
+    }
+    
+    protected String formatBroadcastLog(String message) {
+        return String.format(Main.that.getConfiguration().getString("broadcast.log"), message);
+    }
+    
+    protected String formatSend(MessageLevel level, String message) {
+        return this.formatSend(level, message, true);
+    }
+    
+    protected String formatSend(MessageLevel level, String message, boolean isTimestamped) {
+        return String.format(Main.that.getMessageFormat("send")
+                , message
+                , level.getSendColor().toString()
+                , (isTimestamped ? Main.that.getTimestamp() : "")
+        );
+    }
+    
+    protected String formatSendLog(String message, Player player) {
+        return String.format(Main.that.getConfiguration().getString("send.log"), message, player.getName());
+    }
+    
+    protected String formatLog(MessageLevel level, String message, Plugin plugin) {
+        return String.format(Main.that.getMessageFormat("log"), message, plugin.getDescription().getName());
     }
 }

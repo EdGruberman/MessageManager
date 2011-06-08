@@ -9,66 +9,13 @@ broadcast:
     level: INFO
     format: '%3$s%2$s%1$s' # 1 = Message, 2 = Color, 3 = Formatted Timestamp
     log: '[Broadcast] %1$s' # 1 = Formatted Message
-    player:
-        chat:
-            priority: NORMAL
-            level: INFO
-            format: '<%2$s> %1$s' # 1 = Message, 2 = Player Name
-        say:
-            level: INFO
-            format: '<%2$s> %1$s' # 1 = Message, 2 = Player Name
-        me:
-            level: INFO
-            format: '* %2$s %1s' # 1 = Message, 2 = Player Name
-        join:
-            priority: NORMAL
-            level: CONFIG
-            format: '%1$s joined the server.' # 1 = Player Name
-        quit:
-            priority: NORMAL
-            level: CONFIG
-            format: '%1$s left the server.' # 1 = Player Name
-        kick:
-            priority: NORMAL
-            level: SEVERE
-            format: '%1$s was kicked from the server.' # 1 = Player Name
-    server:
-        say:
-            level: INFO
-            format: '<<Server>> %1$s' # 1 = Message
-        me:
-            level: INFO
-            format: '* <Server> %1s' # 1 = Message
 send:
     level: INFO
     format: '%3$s%2$s-> %1$s' # 1 = Message, 2 = Color, 3 = Formatted Timestamp
     log: '[Message->%2$s] %1$s'  # 1 = Formatted Message, 2 = Player Name
-    player:
-        tell:
-            level: INFO
-            format: '<%2$s> %1$s' # 1 = Message, 2 = Player Name
-    server:
-        tell: 
-            level: INFO
-            format: '<<Server>> %1$s' # 1 = Message
 log:
     level: INFO
     format: '[%2$s] %1$s'  # 1 = Formatted Message, 2 = Plugin Name
-playerLogin:
-    priority: NORMAL
-    format: '-> %1$s'
-    banned:
-        level: SEVERE
-        reason: 'Previously banned'
-    full:
-        level: NOTICE
-        reason: 'Too many players'
-    whitelist:
-        level: WARNING
-        reason: 'Not on whitelist'
-    other:
-        level: SEVERE
-        reason: 'Unknown reason'
 colors:
     SEVERE:
         send: RED
@@ -103,9 +50,3 @@ colors:
     FINEST:
         send: BLACK
         broadcast: BLACK
-timezones:
-    EdGruberman:
-        bias: -510 # = -8:30
-        dst:
-            observed: true
-            adjust: 60
