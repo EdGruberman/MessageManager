@@ -12,6 +12,7 @@
     <property name="lib-shared" location="../../Shared/lib"/>
     <property name="dist" location="../dist"/>
     <property name="stage" location="../stage"/>
+    <property name="doc" location="../doc"/>
 
     <path id="classpath">
         <fileset dir="${lib}">
@@ -21,8 +22,16 @@
             <include name="*.jar"/>
         </fileset>
     </path>
+    
+    <target name="Javadoc Export">
+        <delete dir="${doc}"/>
+        <javadoc sourcepath="${src}" destdir="${doc}" access="public"/>
+    </target>
 
-    <target name="JAR Export" depends="Clean">
+    <target name="JAR Export">
+        <delete dir="${stage}"/>
+        <delete dir="${dist}"/>
+        
         <mkdir dir="${stage}/jar"/>
         <javac srcdir="${src}" destdir="${stage}/jar" encoding="utf-8">
             <classpath refid="classpath"/>
@@ -52,11 +61,6 @@
         <mkdir dir="${dist}"/>
         <jar basedir="${stage}/jar/" jarfile="${dist}/${ant.project.name}.jar" manifest="${stage}/MANIFEST.MF"/>
         <echo message="Exported v${version} to ${dist}/${ant.project.name}.jar"/>
-    </target>
-
-    <target name="Clean">
-        <delete dir="${stage}"/>
-        <delete dir="${dist}"/>
     </target>
 
     <target name="Major Alpha (+1.0.0a1)">
