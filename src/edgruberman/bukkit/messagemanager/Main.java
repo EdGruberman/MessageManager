@@ -4,49 +4,55 @@ import org.bukkit.ChatColor;
 
 public class Main extends org.bukkit.plugin.java.JavaPlugin {
     
-    protected static MessageManager messageManager = null;
-    
-    protected static Main that = null;
-    
-    public Main() {
-        Main.that = this;
-    }
+    private static ConfigurationFile configurationFile;
+    private static MessageManager messageManager;
     
     public void onLoad() {
-        Configuration.load(this);
+        Main.configurationFile = new ConfigurationFile(this);
+        Main.getConfigurationFile().load();
+        
+        Main.messageManager = new MessageManager(this);
+        Main.getMessageManager().log("Version " + this.getDescription().getVersion());
     }
     
     public void onEnable() {
-        Main.messageManager = new MessageManager(this);
-        Main.messageManager.log("Version " + this.getDescription().getVersion());
-        
-        Main.messageManager.log("Plugin Enabled");
+        Main.getMessageManager().log("Plugin Enabled");
     }
     
     public void onDisable() {
-        Main.messageManager.log("Plugin Disabled");
+        Main.getMessageManager().log("Plugin Disabled");
     }
     
-    protected String getTimestamp() {
-        return Main.parseChatColor(this.getConfiguration().getString("timestamp.color"))
-            + new java.text.SimpleDateFormat(this.getMessageFormat("timestamp"))
+    static ConfigurationFile getConfigurationFile() {
+        return Main.configurationFile;
+    }
+    
+    static MessageManager getMessageManager() {
+        return Main.messageManager;
+    }
+    
+    static String getTimestamp() {
+        return ChatColor.valueOf(Main.getConfigurationFile().getConfiguration().getString("timestamp.color"))
+            + new java.text.SimpleDateFormat(Main.getMessageFormat("timestamp"))
                 .format(new java.util.GregorianCalendar().getTime());
     }
     
-    protected MessageLevel getMessageLevel(String path) {
-        return MessageLevel.parse(this.getConfiguration().getString(path + ".level"));
+    static MessageLevel getMessageLevel(final String path) {
+        return MessageLevel.parse(Main.getConfigurationFile().getConfiguration().getString(path + ".level"));
     }
     
-    protected String getMessageFormat(String path) {
-        return this.getConfiguration().getString(path + ".format");
+    static String getMessageFormat(final String path) {
+        return Main.getConfigurationFile().getConfiguration().getString(path + ".format");
     }
     
-    protected static ChatColor getMessageColor(String level, String type) {
-        return Main.parseChatColor(Main.that.getConfiguration().getString("colors." + level + "." + type));
+    static ChatColor getMessageColor(final String level, final String type) {
+        String color = Main.getConfigurationFile().getConfiguration().getString("colors." + level + "." + type);
+        if (color == null) return null;
+        return ChatColor.valueOf(color);
     }
     
     //TODO: parse start and end color tags  
-    protected static String colorize(String message) {
+    static String colorize(final String message) {
         String colorized = message;
         
         ChatColor color = null;
@@ -56,8 +62,8 @@ public class Main extends org.bukkit.plugin.java.JavaPlugin {
             MessageLevel level = MessageLevel.parse(split[1]);
             if (level != null) {
                 color = level.getBroadcastColor();
-            } else {
-                color = Main.parseChatColor(split[1]);
+            } else if (split[1] != null) {
+                color = ChatColor.valueOf(split[1]);
             }
             
             if (color != null)
@@ -65,29 +71,5 @@ public class Main extends org.bukkit.plugin.java.JavaPlugin {
         }
         
         return colorized;
-    }
-    
-    protected static ChatColor parseChatColor(String name) {
-        if (name == null) return null;
-        
-             if (name.toUpperCase().equals("BLACK"))        return ChatColor.BLACK;
-        else if (name.toUpperCase().equals("DARK_BLUE"))    return ChatColor.DARK_BLUE;
-        else if (name.toUpperCase().equals("DARK_BLUE"))    return ChatColor.DARK_BLUE;
-        else if (name.toUpperCase().equals("DARK_GREEN"))   return ChatColor.DARK_GREEN;
-        else if (name.toUpperCase().equals("DARK_AQUA"))    return ChatColor.DARK_AQUA;
-        else if (name.toUpperCase().equals("DARK_RED"))     return ChatColor.DARK_RED;
-        else if (name.toUpperCase().equals("DARK_PURPLE"))  return ChatColor.DARK_PURPLE;
-        else if (name.toUpperCase().equals("GOLD"))         return ChatColor.GOLD;
-        else if (name.toUpperCase().equals("GRAY"))         return ChatColor.GRAY;
-        else if (name.toUpperCase().equals("DARK_GRAY"))    return ChatColor.DARK_GRAY;
-        else if (name.toUpperCase().equals("BLUE"))         return ChatColor.BLUE;
-        else if (name.toUpperCase().equals("GREEN"))        return ChatColor.GREEN;
-        else if (name.toUpperCase().equals("AQUA"))         return ChatColor.AQUA;
-        else if (name.toUpperCase().equals("RED"))          return ChatColor.RED;
-        else if (name.toUpperCase().equals("LIGHT_PURPLE")) return ChatColor.LIGHT_PURPLE;
-        else if (name.toUpperCase().equals("YELLOW"))       return ChatColor.YELLOW;
-        else if (name.toUpperCase().equals("WHITE"))        return ChatColor.WHITE;
-        
-        return null;
     }
 }

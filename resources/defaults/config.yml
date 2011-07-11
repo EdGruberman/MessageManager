@@ -9,6 +9,8 @@ broadcast:
     level: INFO
     format: '%3$s%2$s%1$s' # 1 = Message, 2 = Color, 3 = Formatted Timestamp
     log: '[Broadcast] %1$s' # 1 = Formatted Message
+    world:
+        format: '[%2$s] %1$s' # 1 = Message, 2 = World Name
 send:
     level: INFO
     format: '%3$s%2$s-> %1$s' # 1 = Message, 2 = Color, 3 = Formatted Timestamp

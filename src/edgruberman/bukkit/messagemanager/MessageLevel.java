@@ -89,11 +89,11 @@ public class MessageLevel extends Level {
     private final ChatColor send;
     private final ChatColor broadcast;
     
-    private MessageLevel(Level level) {
+    private MessageLevel(final Level level) {
         this(level.getName(), level.intValue());
     }
     
-    private MessageLevel(String name, int value) {
+    private MessageLevel(final String name, final int value) {
         super(name, value);
 
         this.send = Main.getMessageColor(name, "send");
@@ -108,7 +108,7 @@ public class MessageLevel extends Level {
         return broadcast;
     }
     
-    public static MessageLevel parse(String name) {
+    public static MessageLevel parse(final String name) {
         if (name == null) return null;
         
              if (name.toUpperCase().equals("SEVERE"))  return MessageLevel.SEVERE;
