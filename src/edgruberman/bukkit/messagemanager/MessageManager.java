@@ -1,135 +1,123 @@
 package edgruberman.bukkit.messagemanager;
 
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.bukkit.ChatColor;
+import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import edgruberman.bukkit.messagemanager.channels.Channel;
+import edgruberman.bukkit.messagemanager.channels.CustomChannel;
+import edgruberman.bukkit.messagemanager.channels.LogChannel;
+import edgruberman.bukkit.messagemanager.channels.PlayerChannel;
+import edgruberman.bukkit.messagemanager.channels.ServerChannel;
+import edgruberman.bukkit.messagemanager.channels.WorldChannel;
+
 /**
  * Centralized logging and player communication API.</br>
- * </br>
- * Instantiate this class in the plugin's main class as a public static
- * variable and ensure it is set to an instance in the onEnable method.</br>
  * </br>
  * <b>Known Bug:</b> Logging output for CONFIG level to file in Minecraft
  * does not include level prefix tag despite it displaying in the console.
  */
 public final class MessageManager {
     
-    /**
-     * Default format to apply to messages broadcast to a world. (1 = Message, 2 = World Name)
-     */
-    public static final String DEFAULT_BROADCAST_WORLD_FORMAT = "[%2$s] %1$s";
-        
-    private Plugin owner = null;
-    private Logger logger = null;
+    private static Map<Plugin, MessageManager> instances = new HashMap<Plugin, MessageManager>();
     
-    private Level logLevel = Level.ALL;
-    private Level sendLevel = Level.ALL;
-    private Level broadcastLevel = Level.ALL;
+    private Plugin owner;
+    public Settings settings;
+    private LogChannel log;
     
     /**
      * Associates this manager with the owning plugin.
      * 
-     * @param owner Plugin that owns this manager.
+     * @param owner plugin that owns this manager
      */
     public MessageManager(final Plugin owner) {
+        if (MessageManager.getInstance(owner) != null)
+            throw new IllegalArgumentException("Instance already exists for " + owner.getDescription().getName());
+        
         this.owner = owner;
-        this.logger = Logger.getLogger(owner.getClass().getCanonicalName());
+        this.settings = new Settings(this.owner);
+        this.log = Channel.getInstance(this.owner);
+        this.log.setFormat(this.settings.log.get(Channel.Type.LOG));
+        this.log.setLevel(this.settings.level.get(Channel.Type.LOG));
         
-        org.bukkit.util.config.Configuration cfg = owner.getConfiguration();
-        if (cfg == null) return;
-        
-        this.setBroadcastLevel(MessageLevel.parse(cfg.getString("level.broadcast", "ALL")));
-        this.setSendLevel(MessageLevel.parse(cfg.getString("level.send", "ALL")));
-        this.setLogLevel(MessageLevel.parse(cfg.getString("level.log", "ALL")));
-    }
-
-    /**
-     * Configures logging to only display the specified level or higher.</br>
-     * 
-     * @param level Minimum logging level to show.
-     */
-    public void setLogLevel(final MessageLevel level) {
-        this.logLevel = level;
-        
-        // Only set the parent handler lower if necessary, otherwise leave it alone for other configurations that have set it.
-        for (Handler h : this.logger.getParent().getHandlers()) {
-            if (h.getLevel().intValue() > this.logLevel.intValue()) h.setLevel(this.logLevel);
-        }
-        
-        this.logger.setLevel(this.logLevel);
+        MessageManager.instances.put(owner, this);
     }
     
-    /**
-     * Determines if current logging level will display log entries of the
-     * specified level or higher.
-     * 
-     * @param level MessageLevel to determine if it will be displayed in the log or not.
-     * @return true if current logging level will display this level; false otherwise.
-     */
-    public boolean isLogLevel(final MessageLevel level) {
-        return level.intValue() >= this.logLevel.intValue();
+    public static MessageManager getInstance(final Plugin owner) {
+        return MessageManager.instances.get(owner);
     }
     
-    /**
-     * Create an entry in the server log file. (Use configuration file
-     * defined default level.)
-     * 
-     * @param message Text to display in log entry.
-     */
-    public void log(final String message) {
-        this.log(Main.getMessageLevel("log"), message);
-    }
-    
-    /**
-     * Create an entry in the server log file.
-     * 
-     * @param level Logging level of log entry.
-     * @param message Text to display in log entry.
-     */
-    public void log(final MessageLevel level, final String message) {
-        this.log(level, message, null);
-    }
-    
-    /**
-     * Create an entry in the server log file. (Include error information.)
-     * 
-     * @param level Logging level of log entry.
-     * @param message Text to display in log entry.
-     * @param e Related error message to output along with log entry.
-     */
-    public void log(final MessageLevel level, final String message, final Throwable e) {
-        String formatted = message;
-        if (e != null) formatted = formatted.replaceAll("\n", "   ");
-        for (String messageLine : formatted.split("\n")) {
-            messageLine = this.formatLog(level, messageLine, this.owner);
-            this.logger.log(level, messageLine, e);
+    public void send(final Channel.Type type, final String name, final String message, final MessageLevel level, final Boolean isTimestamped, final Throwable e) {
+        if (!Channel.exists(type, name))
+            throw new IllegalArgumentException(type.toString() + " channel" + (name != null ? " [" + name + "]" : "") + " does not exist.");
+        
+        Channel channel = Channel.getInstance(type, name);
+        
+        MessageLevel lvl = level;
+        if (lvl == null) lvl = MessageLevel.INFO;
+        if (!this.isLevel(type, lvl)) return;
+        
+        String formatted = this.colorize(message, type);
+        
+        for (String line : formatted.split("\n")) {
+            line = this.format(channel, lvl, line);
+            
+            if (channel.type != Channel.Type.LOG)
+                this.log(this.formatLog(channel, line), lvl);
+            
+            switch(channel.type) {
+            case PLAYER: ((PlayerChannel) channel).send(line, isTimestamped); break;
+            case SERVER: ((ServerChannel) channel).send(line, isTimestamped); break;
+            case WORLD:  ((WorldChannel)  channel).send(line, isTimestamped); break;
+            case CUSTOM: ((CustomChannel) channel).send(line, isTimestamped); break;
+            case LOG:    ((LogChannel)    channel).send(line, isTimestamped, lvl, e); break;
+            default: break;
+            }
         }
     }
     
-    /**
-     * Messages to players will only be displayed if equal to or higher than the defined level.
-     * Useful for removing player messages if feedback is not needed.
-     * 
-     * @param level Minimum level of messages to forward to player.
-     */
-    public void setSendLevel(final MessageLevel level) {
-        this.sendLevel = level;
+    public String format(final Channel channel, final MessageLevel level, final String message) {
+        return this.settings.color.get(level).get(channel.type).toString()
+            + String.format(this.settings.format.get(channel.type)
+                , message
+                , channel.name
+        );
+    }
+    
+    private String formatLog(final Channel channel, final String message) {
+        return String.format(this.settings.log.get(channel.type)
+                , message
+                , channel.name
+        );
     }
     
     /**
-     * Determines if current send level will send players messages of the specified level or higher.
+     * Messages will only be sent if equal or higher than the defined level.
      * 
-     * @param level MessageLevel to determine if it will be displayed or not.
-     * @return true if current level will display this message; false otherwise.
+     * @param type type of channels this level will be applied to
+     * @param level minimum level of messages to send
      */
-    public boolean isSendLevel(final MessageLevel level) {
-        return level.intValue() >= this.sendLevel.intValue();
+    public void setLevel(final Channel.Type type, final MessageLevel level) {
+        this.settings.level.put(type, level);
+        
+        if (type == Channel.Type.LOG)
+            this.log.setLevel(this.settings.level.get(type));
+    }
+    
+    /**
+     * Determines if messages of the specified level or higher will be sent.
+     * 
+     * @param level level to determine if it will be sent or not
+     * @return true if current level or higher; false otherwise
+     */
+    public boolean isLevel(final Channel.Type type, final MessageLevel level) {
+        return level.intValue() >= this.settings.level.get(type).intValue();
     }
     
     /**
@@ -140,7 +128,7 @@ public final class MessageManager {
      * @param message Text to display on player's client interface.
      */
     public void send(final Player player, final String message) {
-        this.send(player, null, message);
+        this.send(player, message, null);
     }
     
     /**
@@ -151,8 +139,8 @@ public final class MessageManager {
      * @param level Importance level of message.
      * @param message Text to display on player's client interface.
      */
-    public void send(final Player player, final MessageLevel level, final String message) {
-        this.send(player, level, message, true);
+    public void send(final Player player, final String message, final MessageLevel level) {
+        this.send(player, message, level, null);
     }
  
     /**
@@ -163,21 +151,117 @@ public final class MessageManager {
      * @param message Text to display on player's client interface.
      * @param isTimestamped Include timestamp in message.
      */
-    public void send(final Player player, final MessageLevel level, final String message, final boolean isTimestamped) {
-        MessageLevel lvl = level;
-        
-        if (lvl == null)
-            lvl = Main.getMessageLevel("send");
-        
-        if (!this.isSendLevel(lvl)) return;
-        
-        String formatted = Main.colorize(message);
-        
-        for (String messageLine : formatted.split("\n")) {
-            messageLine = this.formatSend(lvl, messageLine, isTimestamped);
-            this.log(lvl, this.formatSendLog(messageLine, player));
-            player.sendMessage(messageLine);
-        }
+    public void send(final Player player, final String message, final MessageLevel level, final Boolean isTimestamped) {
+        this.send(Channel.Type.PLAYER, player.getName(), message, level, isTimestamped, null);
+    }
+    
+    /**
+     * Broadcast a message that all players can see. (Use configuration file
+     * defined default level and include timestamp.)
+     * 
+     * @param message text to display players' client interface
+     */
+    public void broadcast(final String message) {
+        this.broadcast(message, null);
+    }
+    
+    public void send(final String message) {
+        this.send((Server) null, message);
+    }
+    
+    public void send(final Server server, final String message) {
+        this.send(server, message, null);
+    }
+    
+    /**
+     * Broadcast a message that all players can see. (Include timestamp.)
+     * 
+     * @param message text to display on player's client interface
+     * @param level importance level of message
+     */
+    public void broadcast(final String message, final MessageLevel level) {
+        this.broadcast(message, level, null);
+    }
+    
+    public void send(final Server server, final String message, final MessageLevel level) {
+        this.send(server, message, level, null);
+    }
+    
+    /**
+     * Broadcast a message that all players can see.
+     * 
+     * @param message text to display on player's client interface
+     * @param level importance level of message
+     * @param isTimestamped include timestamp in message
+     */
+    public void broadcast(final String message, final MessageLevel level, final Boolean isTimestamped) {
+        this.send((Server) null, message, level, isTimestamped);
+    }
+    
+    public void send(final Server server, final String message, final MessageLevel level, final Boolean isTimestamped) {
+        this.send(Channel.Type.SERVER, (server != null ? server.getName() : this.owner.getServer().getName()), message, level, isTimestamped, null);
+    }
+    
+    public void send(final World world, final String message) {
+        this.send(world, message, null);
+    }
+
+    public void send(final World world, final String message, final MessageLevel level) {
+        this.send(world, message, level, null);
+    }
+    
+    public void send(final World world, final String message, final MessageLevel level, final Boolean isTimestamped) {
+        this.send(Channel.Type.WORLD, world.getName(), message, level, isTimestamped, null);
+    }
+    
+    public void send(final String name, final String message) {
+        this.send(name, message, null);
+    }
+
+    public void send(final String name, final String message, final MessageLevel level) {
+        this.send(name, message, level, null);
+    }
+    
+    public void send(final String name, final String message, final MessageLevel level, final Boolean isTimestamped) {
+        this.send(Channel.Type.CUSTOM, name, message, level, isTimestamped, null);
+    }
+    
+    /**
+     * Create an entry in the server log file. (Use default level.)
+     * 
+     * @param message text to display in log entry
+     */
+    public void log(final String message) {
+        this.log(message, null);
+    }
+
+    /**
+     * Create an entry in the server log file.
+     * 
+     * @param message text to display in log entry
+     * @param level logging level of log entry
+     */
+    public void log(final String message, final MessageLevel level) {
+        this.log(message, level, null);
+    }
+    
+    /**
+     * Create an entry in the server log file. (Include error information.)
+     * 
+     * @param level logging level of log entry
+     * @param message text to display in log entry
+     * @param e related error message to output along with log entry
+     */
+    public void log(final String message, final MessageLevel level, final Throwable e) {
+        this.send(Channel.Type.LOG, this.owner.getDescription().getName(), message, level, null, e);
+    }
+    
+    public void send(final Channel.Type type, final String name, final String message) {
+        this.send(type, name, message, null);
+    }
+    
+    public void send(final Channel.Type type, final String name, final String message, final MessageLevel level) {
+        this.send(type, name, message, level, null, null);
     }
     
     /**
@@ -190,8 +274,8 @@ public final class MessageManager {
      * @param level Importance level of message.
      * @param message Text to respond to sender with.
      */
-    public void respond(final CommandSender sender, final MessageLevel level, final String message) {
-        this.respond(sender, level, message, true);
+    public void respond(final CommandSender sender, final String message, final MessageLevel level) {
+        this.respond(sender, message, level, null);
     }
     
     /**
@@ -204,144 +288,33 @@ public final class MessageManager {
      * @param message Text to respond to sender with.
      * @param isTimestamped Include timestamp in message if sender is a player.
      */
-    public void respond(final CommandSender sender, final MessageLevel level, final String message, final boolean isTimestamped) {
+    public void respond(final CommandSender sender, final String message, final MessageLevel level, final Boolean isTimestamped) {
         if (sender instanceof Player) {
-            this.send((Player) sender, level, message, isTimestamped);
+            this.send((Player) sender, message, level, isTimestamped);
         } else {
-            this.log(level, message);
+            this.log(message, level);
         }
     }
     
-    /**
-     * Broadcasted messages will only be displayed if equal to or higher than
-     * the defined level. Useful for reducing public message clutter.
-     * 
-     * @param level Minimum level of messages to broadcast.
-     */
-    public void setBroadcastLevel(final MessageLevel level) {
-        this.broadcastLevel = level;
-    }
-    
-    /**
-     * Determines if current broadcast level will broadcast messages of the
-     * specified level or higher.
-     * 
-     * @param level MessageLevel to determine if it will be displayed or not.
-     * @return true if current level will display this message; false otherwise.
-     */
-    public boolean isBroadcastLevel(final MessageLevel level) {
-        return level.intValue() >= this.broadcastLevel.intValue();
-    }
-    
-    /**
-     * Broadcast a message that all players can see. (Use configuration file
-     * defined default level and include timestamp.)
-     * 
-     * @param message Text to display players' client interface.
-     */
-    public void broadcast(final String message) {
-       this.broadcast(null, message);
-    }
-    
-    /**
-     * Broadcast a message that all players can see. (Include timestamp.)
-     * 
-     * @param level Importance level of message.
-     * @param message Text to display on player's client interface.
-     */
-    public void broadcast(final MessageLevel level, final String message) {
-        this.broadcast(level, message, true);
-    }
-    
-    /**
-     * Broadcast a message that all players can see.
-     * 
-     * @param level Importance level of message.
-     * @param message Text to display on player's client interface.
-     * @param isTimestamped Include timestamp in message.
-     */
-    public void broadcast(final MessageLevel level, final String message, final boolean isTimestamped) {
-        MessageLevel lvl = level;
-        if (lvl == null) lvl = Main.getMessageLevel("broadcast");
-        if (!this.isBroadcastLevel(lvl)) return;
+    //TODO: parse start and end color tags
+    private String colorize(final String message, final Channel.Type type) {
+        String colorized = message;
         
-        String formatted = Main.colorize(message);
-        
-        for (String messageLine : formatted.split("\n")) {
-            messageLine = this.formatBroadcast(lvl, messageLine, isTimestamped);
-            this.log(lvl, this.formatBroadcastLog(messageLine));
-            this.owner.getServer().broadcastMessage(messageLine);
-        }
-    }
-    
-    /**
-     * Broadcast a message to all players in a specific world.
-     * 
-     * @param world world to filter recipients to
-     * @param level important level of message
-     * @param message text to display on player's client interface
-     * @param isTimestamped true to include timestamp in message
-     */
-    public void broadcast(final World world, final MessageLevel level, final String message, final boolean isTimestamped) {
-        MessageLevel lvl = level;
-        if (lvl == null) lvl = Main.getMessageLevel("broadcast");
-        if (!this.isBroadcastLevel(lvl)) return;
-        
-        String formatted = Main.colorize(message);
-        
-        for (String messageLine : formatted.split("\n")) {
-            messageLine = this.formatBroadcastWorld(lvl, messageLine, isTimestamped, world);
-            this.log(lvl, this.formatBroadcastLog(messageLine));
+        ChatColor color = null;
+        if (colorized.matches("^%[^%]+%.+")) {
+            String[] split = colorized.split("%", 3);
             
-            for (Player player : world.getPlayers())
-                player.sendMessage(messageLine);
+            MessageLevel level = MessageLevel.parse(split[1]);
+            if (level != null) {
+                color = this.settings.color.get(level).get(type);
+            } else if (split[1] != null) {
+                color = ChatColor.valueOf(split[1]);
+            }
+            
+            if (color != null)
+                colorized = color + split[2];
         }
-    }
-    
-    public String formatBroadcast(final MessageLevel level, final String message) {
-        return this.formatBroadcast(level, message, true);
-    }
-    
-    public String formatBroadcast(final MessageLevel level, final String message, final boolean isTimestamped) {
-        return String.format(Main.getMessageFormat("broadcast")
-                , message
-                , level.getBroadcastColor().toString()
-                , (isTimestamped ? Main.getTimestamp() : "")
-        );
-    }
-    
-    public String formatBroadcastWorld(final MessageLevel level, final String message, final boolean isTimestamped, final World world) {
-        String format = Main.getMessageFormat("broadcast.world");
-        if (format == null) format = MessageManager.DEFAULT_BROADCAST_WORLD_FORMAT;
-        String formatted = String.format(format
-                , message
-                , world.getName()
-        );
         
-        return this.formatBroadcast(level, formatted, isTimestamped);
-    }
-    
-    public String formatBroadcastLog(final String message) {
-        return String.format(Main.getConfigurationFile().getConfiguration().getString("broadcast.log"), message);
-    }
-    
-    public String formatLog(final MessageLevel level, final String message, final Plugin plugin) {
-        return String.format(Main.getMessageFormat("log"), message, plugin.getDescription().getName());
-    }
-    
-    public String formatSend(final MessageLevel level, final String message) {
-        return this.formatSend(level, message, true);
-    }
-    
-    public String formatSend(final MessageLevel level, final String message, final boolean isTimestamped) {
-        return String.format(Main.getMessageFormat("send")
-                , message
-                , level.getSendColor().toString()
-                , (isTimestamped ? Main.getTimestamp() : "")
-        );
-    }
-    
-    public String formatSendLog(final String message, final Player player) {
-        return String.format(Main.getConfigurationFile().getConfiguration().getString("send.log"), message, player.getName());
+        return colorized;
     }
 }

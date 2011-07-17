@@ -1,54 +1,93 @@
-﻿level:
-    broadcast: ALL
-    send: ALL
-    log: ALL
+send:
+    PLAYER:
+        level: CONFIG
+        format: '-> %1$s' # 1 = Message, 2 = Player Name
+        log: '[PLAYER] [%2$s] %1$s' # 1 = Formatted Message, 2 = Player Name
+    SERVER:
+        level: CONFIG
+        format: '%1$s' # 1 = Message, 2 = null
+        log: '[SERVER] %1$s' # 1 = Formatted Message, 2 = Server Name
+    WORLD:
+        level: CONFIG
+        format: '[%2$s] %1$s' # 1 = Message, 2 = World Name
+        log: '[WORLD] %1$s' # 1 = Formatted Message, 2 = World Name
+    CUSTOM:
+        level: CONFIG
+        format: '[%2$s] %1$s' # 1 = Message, 2 = Channel Name
+        log: '[CUSTOM] %1$s' # 1 = Formatted Message, 2 = Channel Name
+    LOG:
+        level: RIGHTS
+        format: '[%2$s] %1$s' # 1 = Message, 2 = Plugin Name
+        log: '%1$s' # 1 = Formatted Message, 2 = Plugin Name
 timestamp:
     color: DARK_GRAY
-    format: 'HH:mm:ss ' # SimpleDateFormat
-broadcast:
-    level: INFO
-    format: '%3$s%2$s%1$s' # 1 = Message, 2 = Color, 3 = Formatted Timestamp
-    log: '[Broadcast] %1$s' # 1 = Formatted Message
-    world:
-        format: '[%2$s] %1$s' # 1 = Message, 2 = World Name
-send:
-    level: INFO
-    format: '%3$s%2$s-> %1$s' # 1 = Message, 2 = Color, 3 = Formatted Timestamp
-    log: '[Message->%2$s] %1$s'  # 1 = Formatted Message, 2 = Player Name
-log:
-    level: INFO
-    format: '[%2$s] %1$s'  # 1 = Formatted Message, 2 = Plugin Name
-colors:
+    pattern: 'HH:mm:ss' # SimpleDateFormat
+    format: '%2$s %1$s' # 1 = Formatted Message, 2 = Timestamp
+    timezone: null
+color:
     SEVERE:
-        send: RED
-        broadcast: DARK_RED
+        PLAYER: RED
+        SERVER: DARK_RED
+        WORLD: DARK_RED
+        CUSTOM: DARK_RED
+        LOG: DARK_RED
     WARNING:
-        send: YELLOW
-        broadcast: GOLD
+        PLAYER: YELLOW
+        SERVER: GOLD
+        WORLD: GOLD
+        CUSTOM: GOLD
+        LOG: GOLD
     NOTICE:
-        send: LIGHT_PURPLE
-        broadcast: DARK_PURPLE
+        PLAYER: LIGHT_PURPLE
+        SERVER: DARK_PURPLE
+        WORLD: DARK_PURPLE
+        CUSTOM: DARK_PURPLE
+        LOG: DARK_PURPLE
     INFO:
-        send: WHITE
-        broadcast: WHITE
+        PLAYER: WHITE
+        SERVER: WHITE
+        WORLD: WHITE
+        CUSTOM: WHITE
+        LOG: WHITE
     STATUS:
-        send: GREEN
-        broadcast: DARK_GREEN
+        PLAYER: GREEN
+        SERVER: DARK_GREEN
+        WORLD: DARK_GREEN
+        CUSTOM: DARK_GREEN
+        LOG: DARK_GREEN
     EVENT:
-        send: GRAY
-        broadcast: DARK_GRAY
-    CONFIG:
-        send: AQUA
-        broadcast: DARK_AQUA
+        PLAYER: GRAY
+        SERVER: DARK_GRAY
+        WORLD: DARK_GRAY
+        CUSTOM: DARK_GRAY
+        LOG: DARK_GRAY
     RIGHTS:
-        send: BLUE
-        broadcast: DARK_BLUE
+        PLAYER: BLUE
+        SERVER: DARK_BLUE
+        WORLD: DARK_BLUE
+        CUSTOM: DARK_BLUE
+        LOG: DARK_BLUE
+    CONFIG:
+        PLAYER: AQUA
+        SERVER: DARK_AQUA
+        WORLD: DARK_AQUA
+        CUSTOM: DARK_AQUA
+        LOG: DARK_AQUA
     FINE:
-        send: BLACK
-        broadcast: BLACK
+        PLAYER: BLACK
+        SERVER: BLACK
+        WORLD: BLACK
+        CUSTOM: BLACK
+        LOG: BLACK
     FINER:
-        send: BLACK
-        broadcast: BLACK
+        PLAYER: BLACK
+        SERVER: BLACK
+        WORLD: BLACK
+        CUSTOM: BLACK
+        LOG: BLACK
     FINEST:
-        send: BLACK
-        broadcast: BLACK
+        PLAYER: BLACK
+        SERVER: BLACK
+        WORLD: BLACK
+        CUSTOM: BLACK
+        LOG: BLACK

@@ -1,14 +1,16 @@
 package edgruberman.bukkit.messagemanager;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
-
-import org.bukkit.ChatColor;
 
 /**
  * Standardization for coloring of common messages.
  */
 @SuppressWarnings("serial")
 public class MessageLevel extends Level {
+    
+    static Map<String, MessageLevel> known = new HashMap<String, MessageLevel>();
 
     /**
      * Errors and denied actions.
@@ -47,16 +49,16 @@ public class MessageLevel extends Level {
     public static final MessageLevel EVENT = new MessageLevel("EVENT", 750);
     
     /**
+     * Permissions related. 
+     * (send = BLUE; broadcast = DARK_BLUE; Level = 725)
+     */
+    public static final MessageLevel RIGHTS = new MessageLevel("RIGHTS", 725);
+    
+    /**
      * Current settings.
      * (send = AQUA; broadcast = DARK_AQUA; Level = CONFIG/700)
      */
     public static final MessageLevel CONFIG = new MessageLevel(Level.CONFIG);
-    
-    /**
-     * Permissions related. 
-     * (send = BLUE; broadcast = DARK_BLUE; Level = 600)
-     */
-    public static final MessageLevel RIGHTS = new MessageLevel("RIGHTS", 600);
     
     /**
      * Debug messages. 
@@ -86,45 +88,17 @@ public class MessageLevel extends Level {
      */
     public static final MessageLevel ALL = new MessageLevel(Level.ALL);
     
-    private final ChatColor send;
-    private final ChatColor broadcast;
-    
     private MessageLevel(final Level level) {
         this(level.getName(), level.intValue());
     }
     
-    private MessageLevel(final String name, final int value) {
+    protected MessageLevel(final String name, final int value) {
         super(name, value);
-
-        this.send = Main.getMessageColor(name, "send");
-        this.broadcast = Main.getMessageColor(name, "broadcast");
-    }
-    
-    public ChatColor getSendColor() {
-        return send;
-    }
-    
-    public ChatColor getBroadcastColor() {
-        return broadcast;
+        
+        MessageLevel.known.put(this.getName(), this);
     }
     
     public static MessageLevel parse(final String name) {
-        if (name == null) return null;
-        
-             if (name.toUpperCase().equals("SEVERE"))  return MessageLevel.SEVERE;
-        else if (name.toUpperCase().equals("WARNING")) return MessageLevel.WARNING;
-        else if (name.toUpperCase().equals("NOTICE"))  return MessageLevel.NOTICE;
-        else if (name.toUpperCase().equals("INFO"))    return MessageLevel.INFO;
-        else if (name.toUpperCase().equals("STATUS"))  return MessageLevel.STATUS;
-        else if (name.toUpperCase().equals("EVENT"))   return MessageLevel.EVENT;
-        else if (name.toUpperCase().equals("CONFIG"))  return MessageLevel.CONFIG;
-        else if (name.toUpperCase().equals("RIGHTS"))  return MessageLevel.RIGHTS;
-        else if (name.toUpperCase().equals("FINE"))    return MessageLevel.FINE;
-        else if (name.toUpperCase().equals("FINER"))   return MessageLevel.FINER;
-        else if (name.toUpperCase().equals("FINEST"))  return MessageLevel.FINEST;
-        else if (name.toUpperCase().equals("OFF"))     return MessageLevel.OFF;
-        else if (name.toUpperCase().equals("ALL"))     return MessageLevel.ALL;
-             
-        return null;
+        return MessageLevel.known.get(name);
     }
 }
