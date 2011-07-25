@@ -58,5 +58,6 @@ final class PlayerListener extends org.bukkit.event.player.PlayerListener {
     @Override
     public void onPlayerQuit(final PlayerQuitEvent event) {
         Channel.disconnect(event.getPlayer());
+        PlayerChannel.disposeInstance(event.getPlayer());
     }
 }

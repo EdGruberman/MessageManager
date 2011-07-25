@@ -73,6 +73,9 @@ public class Channel {
     }
     
     public void send(final String message, final Boolean isTimestamped) {
+        if (!Channel.exists(this))
+            throw new IllegalArgumentException("Channel reference no longer valid.");
+            
         for (Recipient recipient : this.members)
             recipient.send(message, isTimestamped);
     }
@@ -155,6 +158,10 @@ public class Channel {
         return Channel.instances.get(type).containsKey(name);
     }
     
+    private static boolean exists(final Channel channel) {
+        return Channel.exists(channel.type, channel.name);
+    }
+    
     public static boolean exists(final Player player) {
         return Channel.exists(Channel.Type.PLAYER, player.getName());
     }
@@ -173,6 +180,40 @@ public class Channel {
     
     public static boolean exists(final String name) {
         return Channel.exists(Channel.Type.CUSTOM, name);
+    }
+    
+    public static boolean disposeInstance(Channel channel) {
+        if (!Channel.exists(channel)) return false;
+        
+        Channel.instances.get(channel.type).remove(channel.name);
+        return true;
+    }
+    
+    public static boolean disposeInstance(final Channel.Type type, final String name) {
+        if (!Channel.exists(type, name)) return false;
+        
+        Channel.disposeInstance(Channel.getInstance(type, name));
+        return true;
+    }
+    
+    public static boolean disposeInstance(final Player player) {
+        return Channel.disposeInstance(Channel.Type.PLAYER, player.getName());
+    }
+    
+    public static boolean disposeInstance(final Server server) {
+        return Channel.disposeInstance(Channel.Type.SERVER, server.getName());
+    }
+    
+    public static boolean disposeInstance(final World world) {
+        return Channel.disposeInstance(Channel.Type.WORLD, world.getName());
+    }
+    
+    public static boolean disposeInstance(final Plugin plugin) {
+        return Channel.disposeInstance(Channel.Type.LOG, plugin.getDescription().getName());
+    }
+    
+    public static boolean disposeInstance(final String name) {
+        return Channel.disposeInstance(Channel.Type.CUSTOM, name);
     }
     
     @Override
