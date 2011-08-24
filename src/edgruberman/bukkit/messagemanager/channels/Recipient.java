@@ -5,19 +5,23 @@ import java.util.Map;
 
 import org.bukkit.entity.Player;
 
+import edgruberman.bukkit.messagemanager.Main;
 
 public final class Recipient {
     
-    private static Map<String, Recipient> instances = new HashMap<String, Recipient>(); 
+    private static Map<String, Recipient> instances = new HashMap<String, Recipient>();
     
     private Player player;
-    private Timestamp timestamp = null;
-        
+    private boolean useTimestamp;
+    private Timestamp timestamp;
+    
     private Recipient(final Player player) {
         if (Recipient.exists(player))
             throw new IllegalArgumentException("Instance already exists for " + player.getName());
         
         this.player = player;
+        this.useTimestamp = Main.useTimestampFor(player.getName());
+        this.timestamp = Main.timestampFor(player.getName());
         
         Recipient.instances.put(player.getName(), this);
     }
@@ -38,14 +42,13 @@ public final class Recipient {
     }
     
     public void send(final String message) {
-        this.send(message, null);
+        this.send(message, this.useTimestamp);
     }
     
-    public void send(final String message, final Boolean isTimestampRequested) {
+    public void send(final String message, final boolean isTimestampRequested) {
         String msg = message;
-        boolean isTimestamped = (isTimestampRequested != null ? isTimestampRequested : true); 
         
-        if (isTimestamped && this.timestamp != null)
+        if (isTimestampRequested && this.useTimestamp)
             msg = this.timestamp.format(message);
         
         this.player.sendMessage(msg);
@@ -65,5 +68,13 @@ public final class Recipient {
     
     public void setTimestamp(final Timestamp timestamp) {
         this.timestamp = timestamp;
+    }
+    
+    public boolean getUseTimestamp() {
+        return this.useTimestamp;
+    }
+    
+    public void setUseTimestamp(final boolean useTimestamp) {
+        this.useTimestamp = useTimestamp;
     }
 }

@@ -1,5 +1,165 @@
 name: MessageManager
-description: Standardized messaging (broadcast, send, log) API for plugins.
 version: %VERSION%
+description: Messaging Channels API
 author: EdGruberman (ed@rjump.com)
 main: edgruberman.bukkit.messagemanager.Main
+commands:
+    messagemanager:
+        description: Manages core settings related to this plugin.
+        aliases: mm
+        permission: messagemanager.messagemanager
+        usage: |
+            /<command> reload - Reloads configuration for the plugin. 
+    timestamp:
+        description: Manages timestamps for messages.
+        aliases: [ts, stamp]
+        permission: messagemanager.timestamp
+        usage: |
+            /<command>[ <Player>] - Display current timestamp settings
+            /<command>[ <Player>] reset - Revert all changes back to default
+            /<command>[ <Player>] on - Enable timestamp display for <Player>
+            /<command>[ <Player>] off - Disable timestamp display for <Player>
+            /<command>[ <Player>] pattern([ get]| set <Pattern>) - Display or configure pattern for <Player>
+            /<command>[ <Player>] format([ get]| set <Format>) - Display or configure format for <Player>
+            /<command>[ <Player>] timezone([ get]| set <TimeZone>) - Display or configure time zone for <Player>
+    timezone:
+        description: Manages timezone setting for message timestamps for self.
+        aliases: tz
+        permission: messagemanager.timestamp.timezone.get
+        usage: |
+            /<command>[ <TimeZone>] - Display or configure time zone.
+permissions:
+    messagemanager.messagemanager.reload:
+        description: Can use reload action of messagemanager command.
+        default: op
+        children:
+            messagemanager.messagemanager: true
+    messagemanager.messagemanager:
+        description: Can use messagemanager command.
+        default: false
+    messagemanager.timestamp.get:
+        description: Can use get action of timestamp command for self.
+        default: true
+        children:
+            messagemanager.timestamp.pattern.get: true
+            messagemanager.timestamp.format.get: true
+            messagemanager.timestamp.timezone.get: true
+    messagemanager.timestamp.self:
+        description: Can use all actions of timestamp command for self.
+        default: false
+        children:
+            messagemanager.timestamp.get: true
+            messagemanager.timestamp.pattern.set: true
+            messagemanager.timestamp.format.set: true
+            messagemanager.timestamp.timezone.set: true
+            messagemanager.timestamp.reset: true
+            messagemanager.timestamp.toggle: true
+    messagemanager.timestamp.player.*:
+        description: Can use all actions of timestamp command for any player.
+        default: op
+        children:
+            messagemanager.timestamp.self: true
+            messagemanager.timestamp.get.player.*: true
+            messagemanager.timestamp.pattern.set.player.*: true
+            messagemanager.timestamp.format.set.player.*: true
+            messagemanager.timestamp.timezone.set.player.*: true
+            messagemanager.timestamp.color.set.player.*: true
+            messagemanager.timestamp.reset.player.*: true
+            messagemanager.timestamp.toggle.player.*: true
+    messagemanager.timestamp:
+        description: Can use the timestamp command.
+        default: false
+    messagemanager.timestamp.pattern.get:
+        description: Can use get pattern action of timestamp command for self.
+        default: false
+        children:
+            messagemanager.timestamp: true
+    messagemanager.timestamp.pattern.set:
+        description: Can use set pattern action of timestamp command for self.
+        default: false
+        children:
+            messagemanager.timestamp: true
+            messagemanager.timestamp.pattern.get: true
+    messagemanager.timestamp.format.get:
+        description: Can use get format action of timestamp command for self.
+        default: false
+        children:
+            messagemanager.timestamp: true
+    messagemanager.timestamp.format.set:
+        description: Can use set format action of timestamp command for self.
+        default: false
+        children:
+            messagemanager.timestamp: true
+            messagemanager.timestamp.format.get: true
+    messagemanager.timestamp.timezone.get:
+        description: Can use get timezone action of timestamp command for self.
+        default: false
+        children:
+            messagemanager.timestamp: true
+    messagemanager.timestamp.timezone.set:
+        description: Can use set timezone action of timestamp command for self.
+        default: false
+        children:
+            messagemanager.timestamp: true
+            messagemanager.timestamp.timezone.get: true
+    messagemanager.timestamp.reset:
+        description: Can use reset action of timestamp command for self.
+        default: false
+        children:
+            messagemanager.timestamp: true
+    messagemanager.timestamp.toggle:
+        description: Can use on and off actions of timestamp command for self.
+        default: false
+        children:
+            messagemanager.timestamp: true
+    messagemanager.timestamp.get.player.*:
+        description: Can use get action of timestamp command for any player.
+        default: false
+        children:
+            messagemanager.timestamp.get: true
+            messagemanager.timestamp.pattern.get.player.*: true
+            messagemanager.timestamp.format.get.player.*: true
+            messagemanager.timestamp.timezone.get.player.*: true
+    messagemanager.timestamp.pattern.get.player.*:
+        description: Can use get pattern action of timestamp command for any player.
+        default: false
+        children:
+            messagemanager.timestamp: true
+    messagemanager.timestamp.pattern.set.player.*:
+        description: Can use set pattern action of timestamp command for any player.
+        default: false
+        children:
+            messagemanager.timestamp: true
+            messagemanager.timestamp.pattern.get.player.*: true
+    messagemanager.timestamp.format.get.player.*:
+        description: Can use get format action of timestamp command for any player.
+        default: false
+        children:
+            messagemanager.timestamp: true
+    messagemanager.timestamp.format.set.player.*:
+        description: Can use set format action of timestamp command for any player.
+        default: false
+        children:
+            messagemanager.timestamp: true
+            messagemanager.timestamp.format.get.player.*: true
+    messagemanager.timestamp.timezone.get.player.*:
+        description: Can use get timezone action of timestamp command for any player.
+        default: false
+        children:
+            messagemanager.timestamp: true
+    messagemanager.timestamp.timezone.set.player.*:
+        description: Can use set timezone action of timestamp command for any player.
+        default: false
+        children:
+            messagemanager.timestamp: true
+            messagemanager.timestamp.timezone.get.player.*: true
+    messagemanager.timestamp.reset.player.*:
+        description: Can use reset action of timestamp command for any player.
+        default: false
+        children:
+            messagemanager.timestamp: true
+    messagemanager.timestamp.toggle.player.*:
+        description: Can use on and off actions of timestamp command for any player.
+        default: false
+        children:
+            messagemanager.timestamp: true

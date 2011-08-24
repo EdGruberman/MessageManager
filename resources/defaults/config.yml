@@ -20,9 +20,8 @@ send:
         format: '[%2$s] %1$s' # 1 = Message, 2 = Plugin Name
         log: '%1$s' # 1 = Formatted Message, 2 = Plugin Name
 timestamp:
-    color: DARK_GRAY
     pattern: 'HH:mm:ss' # SimpleDateFormat
-    format: '%2$s %1$s' # 1 = Formatted Message, 2 = Timestamp
+    format: '&8%2$s &_%1$s' # 1 = Formatted Message, 2 = Timestamp
     timezone: null
 color:
     SEVERE:

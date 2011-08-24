@@ -2,6 +2,9 @@ package edgruberman.bukkit.messagemanager;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
@@ -30,13 +33,23 @@ public final class MessageManager {
     private Plugin owner;
     public Settings settings;
     private LogChannel log;
+    public MessageLevel levelDefault;
+    
+    /**
+     * Default value for using timestamp on messages that do not explicitly indicate.
+     */
+    public boolean useTimestampDefault;
+    
+    public MessageManager(final Plugin owner) {
+        this(owner, Settings.DEFAULT_MESSAGE_USE_TIMESTAMP, Settings.DEFAULT_MESSAGE_LEVEL);
+    }
     
     /**
      * Associates this manager with the owning plugin.
      * 
      * @param owner plugin that owns this manager
      */
-    public MessageManager(final Plugin owner) {
+    public MessageManager(final Plugin owner, final boolean useTimestampDefault, final MessageLevel levelDefault) {
         if (MessageManager.getInstance(owner) != null)
             throw new IllegalArgumentException("Instance already exists for " + owner.getDescription().getName());
         
@@ -45,6 +58,8 @@ public final class MessageManager {
         this.log = Channel.getInstance(this.owner);
         this.log.setFormat(this.settings.log.get(Channel.Type.LOG));
         this.log.setLevel(this.settings.level.get(Channel.Type.LOG));
+        this.levelDefault = levelDefault;
+        this.useTimestampDefault = useTimestampDefault;
         
         MessageManager.instances.put(owner, this);
     }
@@ -53,35 +68,47 @@ public final class MessageManager {
         return MessageManager.instances.get(owner);
     }
     
-    public void send(final Channel.Type type, final String name, final String message, final MessageLevel level, final Boolean isTimestamped, final Throwable e) {
+    public void send(final Channel.Type type, final String name, final String message) {
+        this.send(type, name, message, this.levelDefault);
+    }
+    
+    public void send(final Channel.Type type, final String name, final String message, final MessageLevel level) {
+        this.send(type, name, message, level, this.useTimestampDefault);
+    }
+    
+    public void send(final Channel.Type type, final String name, final String message, final MessageLevel level, final boolean useTimestamp) {
+        this.send(type, name, message, level, useTimestamp, null);
+    }
+    
+    public void send(final Channel.Type type, final String name, final String message, final MessageLevel level, final Throwable e) {
+        this.send(type, name, message, level, this.useTimestampDefault, e);
+    }
+    
+    public void send(final Channel.Type type, final String name, final String message, final MessageLevel level, final boolean useTimestamp, final Throwable e) {
         if (!Channel.exists(type, name))
             throw new IllegalArgumentException(type.toString() + " channel" + (name != null ? " [" + name + "]" : "") + " does not exist.");
         
+        if (!this.isLevel(type, level)) return;
+        
         Channel channel = Channel.getInstance(type, name);
-        
-        MessageLevel lvl = level;
-        if (lvl == null) lvl = MessageLevel.INFO;
-        if (!this.isLevel(type, lvl)) return;
-        
-        String formatted = this.colorize(message, type);
-        
+        String formatted = MessageManager.colorize(message, this.settings.color.get(level).get(channel.type));
         for (String line : formatted.split("\n")) {
-            line = this.format(channel, lvl, line);
+            line = this.format(channel, level, line);
             
             if (channel.type != Channel.Type.LOG)
-                this.log(this.formatLog(channel, line), lvl);
+                this.log(this.formatLog(channel, line), level);
             
             switch(channel.type) {
-            case PLAYER: ((PlayerChannel) channel).send(line, isTimestamped); break;
-            case SERVER: ((ServerChannel) channel).send(line, isTimestamped); break;
-            case WORLD:  ((WorldChannel)  channel).send(line, isTimestamped); break;
-            case CUSTOM: ((CustomChannel) channel).send(line, isTimestamped); break;
-            case LOG:    ((LogChannel)    channel).send(line, isTimestamped, lvl, e); break;
+            case PLAYER: ((PlayerChannel) channel).send(line, useTimestamp); break;
+            case SERVER: ((ServerChannel) channel).send(line, useTimestamp); break;
+            case WORLD:  ((WorldChannel)  channel).send(line, useTimestamp); break;
+            case CUSTOM: ((CustomChannel) channel).send(line, useTimestamp); break;
+            case LOG:    ((LogChannel)    channel).send(line, useTimestamp, level, e); break;
             default: break;
             }
         }
     }
-    
+        
     public String format(final Channel channel, final MessageLevel level, final String message) {
         return this.settings.color.get(level).get(channel.type).toString()
             + String.format(this.settings.format.get(channel.type)
@@ -120,6 +147,7 @@ public final class MessageManager {
         return level.intValue() >= this.settings.level.get(type).intValue();
     }
     
+    // Player
     /**
      * Send a private message that only a single player can see. (Use
      * configuration file defined default level and include timestamp.)
@@ -128,7 +156,7 @@ public final class MessageManager {
      * @param message Text to display on player's client interface.
      */
     public void send(final Player player, final String message) {
-        this.send(player, message, null);
+        this.send(Channel.Type.PLAYER, player.getName(), message);
     }
     
     /**
@@ -140,7 +168,7 @@ public final class MessageManager {
      * @param message Text to display on player's client interface.
      */
     public void send(final Player player, final String message, final MessageLevel level) {
-        this.send(player, message, level, null);
+        this.send(Channel.Type.PLAYER, player.getName(), message, level);
     }
  
     /**
@@ -149,10 +177,35 @@ public final class MessageManager {
      * @param player Player to target message to.
      * @param level Importance level of message.
      * @param message Text to display on player's client interface.
-     * @param isTimestamped Include timestamp in message.
+     * @param useTimestamp Include timestamp in message.
      */
-    public void send(final Player player, final String message, final MessageLevel level, final Boolean isTimestamped) {
-        this.send(Channel.Type.PLAYER, player.getName(), message, level, isTimestamped, null);
+    public void send(final Player player, final String message, final MessageLevel level, final Boolean useTimestamp) {
+        this.send(Channel.Type.PLAYER, player.getName(), message, level, useTimestamp);
+    }
+    
+    // Server
+    public void send(final String message) {
+        this.send(this.owner.getServer(), message);
+    }
+    
+    public void send(final String message, final MessageLevel level) {
+        this.send(this.owner.getServer(), message, level);
+    }
+    
+    public void send(final String message, final MessageLevel level, final Boolean useTimestamp) {
+        this.send(this.owner.getServer(), message, level, useTimestamp);
+    }
+    
+    public void send(final Server server, final String message) {
+        this.send(Channel.Type.SERVER, server.getName(), message);
+    }
+    
+    public void send(final Server server, final String message, final MessageLevel level) {
+        this.send(Channel.Type.SERVER, server.getName(), message, level);
+    }
+    
+    public void send(final Server server, final String message, final MessageLevel level, final Boolean useTimestamp) {
+        this.send(Channel.Type.SERVER, server.getName(), message, level, useTimestamp);
     }
     
     /**
@@ -162,15 +215,7 @@ public final class MessageManager {
      * @param message text to display players' client interface
      */
     public void broadcast(final String message) {
-        this.broadcast(message, null);
-    }
-    
-    public void send(final String message) {
-        this.send((Server) null, message);
-    }
-    
-    public void send(final Server server, final String message) {
-        this.send(server, message, null);
+        this.send(this.owner.getServer(), message);
     }
     
     /**
@@ -180,11 +225,7 @@ public final class MessageManager {
      * @param level importance level of message
      */
     public void broadcast(final String message, final MessageLevel level) {
-        this.broadcast(message, level, null);
-    }
-    
-    public void send(final Server server, final String message, final MessageLevel level) {
-        this.send(server, message, level, null);
+        this.send(this.owner.getServer(), message, level);
     }
     
     /**
@@ -192,49 +233,48 @@ public final class MessageManager {
      * 
      * @param message text to display on player's client interface
      * @param level importance level of message
-     * @param isTimestamped include timestamp in message
+     * @param useTimestamp include timestamp in message
      */
-    public void broadcast(final String message, final MessageLevel level, final Boolean isTimestamped) {
-        this.send((Server) null, message, level, isTimestamped);
+    public void broadcast(final String message, final MessageLevel level, final Boolean useTimestamp) {
+        this.send(this.owner.getServer(), message, level, useTimestamp);
     }
     
-    public void send(final Server server, final String message, final MessageLevel level, final Boolean isTimestamped) {
-        this.send(Channel.Type.SERVER, (server != null ? server.getName() : this.owner.getServer().getName()), message, level, isTimestamped, null);
-    }
-    
+    // World
     public void send(final World world, final String message) {
-        this.send(world, message, null);
+        this.send(Channel.Type.WORLD, world.getName(), message);
     }
-
+    
     public void send(final World world, final String message, final MessageLevel level) {
-        this.send(world, message, level, null);
+        this.send(Channel.Type.WORLD, world.getName(), message, level);
     }
     
-    public void send(final World world, final String message, final MessageLevel level, final Boolean isTimestamped) {
-        this.send(Channel.Type.WORLD, world.getName(), message, level, isTimestamped, null);
+    public void send(final World world, final String message, final MessageLevel level, final Boolean useTimestamp) {
+        this.send(Channel.Type.WORLD, world.getName(), message, level, useTimestamp);
     }
     
+    // Custom
     public void send(final String name, final String message) {
-        this.send(name, message, null);
+        this.send(Channel.Type.CUSTOM, name, message);
     }
 
     public void send(final String name, final String message, final MessageLevel level) {
-        this.send(name, message, level, null);
+        this.send(Channel.Type.CUSTOM, name, message, level);
     }
     
-    public void send(final String name, final String message, final MessageLevel level, final Boolean isTimestamped) {
-        this.send(Channel.Type.CUSTOM, name, message, level, isTimestamped, null);
+    public void send(final String name, final String message, final MessageLevel level, final Boolean useTimestamp) {
+        this.send(Channel.Type.CUSTOM, name, message, level, useTimestamp);
     }
     
+    // Log
     /**
      * Create an entry in the server log file. (Use default level.)
      * 
      * @param message text to display in log entry
      */
     public void log(final String message) {
-        this.log(message, null);
+        this.send(Channel.Type.LOG, this.owner.getDescription().getName(), message);
     }
-
+    
     /**
      * Create an entry in the server log file.
      * 
@@ -242,7 +282,7 @@ public final class MessageManager {
      * @param level logging level of log entry
      */
     public void log(final String message, final MessageLevel level) {
-        this.log(message, level, null);
+        this.send(Channel.Type.LOG, this.owner.getDescription().getName(), message, level);
     }
     
     /**
@@ -253,15 +293,12 @@ public final class MessageManager {
      * @param e related error message to output along with log entry
      */
     public void log(final String message, final MessageLevel level, final Throwable e) {
-        this.send(Channel.Type.LOG, this.owner.getDescription().getName(), message, level, null, e);
+        this.send(Channel.Type.LOG, this.owner.getDescription().getName(), message, level, e);
     }
-    
-    public void send(final Channel.Type type, final String name, final String message) {
-        this.send(type, name, message, null);
-    }
-    
-    public void send(final Channel.Type type, final String name, final String message, final MessageLevel level) {
-        this.send(type, name, message, level, null, null);
+
+    // Respond
+    public void respond(final CommandSender sender, final String message) {
+        this.respond(sender, message, this.levelDefault);
     }
     
     /**
@@ -275,7 +312,7 @@ public final class MessageManager {
      * @param message Text to respond to sender with.
      */
     public void respond(final CommandSender sender, final String message, final MessageLevel level) {
-        this.respond(sender, message, level, null);
+        this.respond(sender, message, level, this.useTimestampDefault);
     }
     
     /**
@@ -286,35 +323,51 @@ public final class MessageManager {
      * @param sender Original command sender.
      * @param level Importance level of message.
      * @param message Text to respond to sender with.
-     * @param isTimestamped Include timestamp in message if sender is a player.
+     * @param useTimestamp Include timestamp in message if sender is a player.
      */
-    public void respond(final CommandSender sender, final String message, final MessageLevel level, final Boolean isTimestamped) {
+    public void respond(final CommandSender sender, final String message, final MessageLevel level, final Boolean useTimestamp) {
         if (sender instanceof Player) {
-            this.send((Player) sender, message, level, isTimestamped);
+            this.send((Player) sender, message, level, useTimestamp);
         } else {
             this.log(message, level);
         }
     }
     
-    //TODO: parse start and end color tags
-    private String colorize(final String message, final Channel.Type type) {
-        String colorized = message;
+    public static String colorize(final String message) {
+        return MessageManager.colorize(message, null);
+    }
+    
+    public static String colorize(final String message, final ChatColor base) {
+        Stack<String> colors = new Stack<String>();
+        colors.push((base != null ? base.toString() : ""));
         
-        ChatColor color = null;
-        if (colorized.matches("^%[^%]+%.+")) {
-            String[] split = colorized.split("%", 3);
-            
-            MessageLevel level = MessageLevel.parse(split[1]);
-            if (level != null) {
-                color = this.settings.color.get(level).get(type);
-            } else if (split[1] != null) {
-                color = ChatColor.valueOf(split[1]);
+        StringBuffer colorized = new StringBuffer();
+        
+        Pattern p = Pattern.compile("&(&|[0-9A-Fa-f]|_)");
+        Matcher m = p.matcher(message);
+        while (m.find()) {
+            // Replace escaped ampersand with single ampersand.
+            if (m.group(1).equals("&")) {
+                m.appendReplacement(colorized, "&");
+                continue;
             }
             
-            if (color != null)
-                colorized = color + split[2];
+            // Replace closure marker with previous color on stack.
+            if (m.group(1).equals("_")) {
+                if (colors.size() > 1) colors.pop();
+                m.appendReplacement(colorized, colors.peek());
+                continue;
+            }
+            
+            // Replace hex code with color.
+            ChatColor color = ChatColor.getByCode(Integer.parseInt(m.group(1), 16));
+            if (color == null) continue;
+            
+            colors.push(color.toString());
+            m.appendReplacement(colorized, colors.peek());
         }
+        m.appendTail(colorized);
         
-        return colorized;
+        return colorized.toString();
     }
 }

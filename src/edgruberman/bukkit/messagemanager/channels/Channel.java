@@ -11,6 +11,8 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import edgruberman.bukkit.messagemanager.Main;
+
 public class Channel {
     
     public static Map<Channel.Type, Map<String, Channel>> instances = new HashMap<Channel.Type, Map<String, Channel>>();
@@ -69,10 +71,10 @@ public class Channel {
     }
     
     public void send(final String message) {
-        this.send(message, null);
+        this.send(message, Main.messageManager.useTimestampDefault);
     }
     
-    public void send(final String message, final Boolean isTimestamped) {
+    public void send(final String message, final boolean isTimestamped) {
         if (!Channel.exists(this))
             throw new IllegalArgumentException("Channel reference no longer valid.");
             

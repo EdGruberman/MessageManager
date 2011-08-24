@@ -19,13 +19,15 @@ import edgruberman.bukkit.messagemanager.channels.Timestamp;
  */
 public final class Settings {
     
+    public static final MessageLevel DEFAULT_MESSAGE_LEVEL = MessageLevel.INFO;
+    public static final boolean DEFAULT_MESSAGE_USE_TIMESTAMP = true;
+    
     public static final Map<Channel.Type, MessageLevel> DEFAULT_LEVEL = new HashMap<Channel.Type, MessageLevel>();
     public static final Map<Channel.Type, String> DEFAULT_FORMAT = new HashMap<Channel.Type, String>();
     public static final Map<Channel.Type, String> DEFAULT_LOG = new HashMap<Channel.Type, String>();
     
-    public static final ChatColor DEFAULT_TIMESTAMP_COLOR = ChatColor.DARK_GRAY;
     public static final String DEFAULT_TIMESTAMP_PATTERN = "HH:mm:ss"; // SimpleDateFormat
-    public static final String DEFAULT_TIMESTAMP_FORMAT = "%2$s %1$s"; // 1 = Formatted Message, 2 = Formatted Timestamp
+    public static final String DEFAULT_TIMESTAMP_FORMAT = "&8%2$s &_%1$s"; // 1 = Formatted Message, 2 = Formatted Timestamp
     public static final TimeZone DEFAULT_TIMESTAMP_TIMEZONE = TimeZone.getDefault();
     
     public static final Map<MessageLevel, Map<Channel.Type, ChatColor>> DEFAULT_COLOR = new HashMap<MessageLevel, Map<Channel.Type, ChatColor>>();
@@ -76,7 +78,7 @@ public final class Settings {
     public Map<Channel.Type, MessageLevel> level = new HashMap<Channel.Type, MessageLevel>();
     public Map<Channel.Type, String> format = new HashMap<Channel.Type, String>();
     public Map<Channel.Type, String> log = new HashMap<Channel.Type, String>();
-    public Timestamp timestamp = new Timestamp();
+    public Timestamp timestamp = new Timestamp(Settings.DEFAULT_TIMESTAMP_PATTERN, Settings.DEFAULT_TIMESTAMP_FORMAT, Settings.DEFAULT_TIMESTAMP_TIMEZONE);
     public Map<MessageLevel, Map<Channel.Type, ChatColor>> color = new HashMap<MessageLevel, Map<Channel.Type, ChatColor>>();
     
     private ConfigurationNode configuration;
@@ -116,10 +118,9 @@ public final class Settings {
           ));
         }
 
-        this.timestamp.color = this.parseChatColor("timestamp.color", Settings.parent.timestamp.color, Settings.DEFAULT_TIMESTAMP_COLOR);
-        this.timestamp.pattern= this.parseString("timestamp.pattern", Settings.parent.timestamp.pattern, Settings.DEFAULT_TIMESTAMP_PATTERN);
-        this.timestamp.format = this.parseString("timestamp.format", Settings.parent.timestamp.format, Settings.DEFAULT_TIMESTAMP_FORMAT);
-        this.timestamp.timezone = this.parseTimeZone("timestamp.timezone", Settings.parent.timestamp.timezone, Settings.DEFAULT_TIMESTAMP_TIMEZONE);
+        this.timestamp.setPattern(this.parseString("timestamp.pattern", Settings.parent.timestamp.getPattern(), Settings.DEFAULT_TIMESTAMP_PATTERN));
+        this.timestamp.setFormat(this.parseString("timestamp.format", Settings.parent.timestamp.getFormat(), Settings.DEFAULT_TIMESTAMP_FORMAT));
+        this.timestamp.setTimeZone(this.parseTimeZone("timestamp.timezone", Settings.parent.timestamp.getTimeZone(), Settings.DEFAULT_TIMESTAMP_TIMEZONE));
         
         for (MessageLevel level : MessageLevel.known.values()) {
             this.color.put(level, new HashMap<Channel.Type, ChatColor>());

@@ -6,6 +6,8 @@ import java.util.logging.Logger;
 
 import org.bukkit.plugin.Plugin;
 
+import edgruberman.bukkit.messagemanager.Settings;
+
 
 public final class LogChannel extends Channel {
     
@@ -18,17 +20,16 @@ public final class LogChannel extends Channel {
     }
     
     @Override
-    public void send(final String message, final Boolean isTimestamped) {
-        this.send(message, isTimestamped, null);
+    public void send(final String message, final boolean isTimestamped) {
+        this.send(message, isTimestamped, Settings.DEFAULT_MESSAGE_LEVEL);
     }
     
-    public void send(final String message, final Boolean isTimestamped, final Level level) {
+    public void send(final String message, final boolean isTimestamped, final Level level) {
         this.send(message, isTimestamped, level, null);
     }
     
-    public void send(final String message, final Boolean isTimestamped, final Level level, final Throwable e) {
-        Level lvl = (level != null ? level : Level.INFO);
-        this.logger.log(lvl, this.format(message), e);
+    public void send(final String message, final boolean isTimestamped, final Level level, final Throwable e) {
+        this.logger.log(level, this.format(message), e);
         super.send(message, isTimestamped);
     }
     
