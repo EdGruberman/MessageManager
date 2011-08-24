@@ -22,7 +22,7 @@ class TimestampReset extends Action {
             return;
         }
         
-        if (!(context.sender instanceof Player) || !((Player) context.sender).equals(target)) {
+        if (!(context.sender instanceof Player) || !((Player) context.sender).getName().equals(target)) {
             Permission permission = Permission.TIMESTAMP_RESET_PLAYER;
             if (!context.sender.hasPermission(permission.toString("*"))
                     && !context.sender.hasPermission(permission.toString(target))) {

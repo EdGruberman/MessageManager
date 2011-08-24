@@ -23,7 +23,7 @@ class TimestampPattern extends Action {
         }
         
         String operation = Timestamp.parseOperation(context);
-        if (!(context.sender instanceof Player) || !((Player) context.sender).equals(target)) {
+        if (!(context.sender instanceof Player) || !((Player) context.sender).getName().equals(target)) {
             Permission permission = Permission.TIMESTAMP_PATTERN_GET_PLAYER;
             if (operation.equals("set")) permission = Permission.TIMESTAMP_PATTERN_SET_PLAYER;
             
