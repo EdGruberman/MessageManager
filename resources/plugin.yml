@@ -9,16 +9,16 @@ commands:
         aliases: mm
         permission: messagemanager.messagemanager
         usage: |
-            /<command> reload - Reloads configuration for the plugin. 
+            /<command> reload - Reloads configuration for the plugin
     timestamp:
         description: Manages timestamps for messages.
         aliases: [ts, stamp]
         permission: messagemanager.timestamp
         usage: |
-            /<command>[ <Player>] - Display current timestamp settings
-            /<command>[ <Player>] reset - Revert all changes back to default
-            /<command>[ <Player>] on - Enable timestamp display for <Player>
-            /<command>[ <Player>] off - Disable timestamp display for <Player>
+            /<command>[ <Player>] - Display current timestamp settings for <Player>
+            /<command>[ <Player>] reset - Revert all changes back to default for <Player>
+            /<command>[ <Player>] on - Enable timestamp for <Player>
+            /<command>[ <Player>] off - Disable timestamp for <Player>
             /<command>[ <Player>] pattern([ get]| set <Pattern>) - Display or configure pattern for <Player>
             /<command>[ <Player>] format([ get]| set <Format>) - Display or configure format for <Player>
             /<command>[ <Player>] timezone([ get]| set <TimeZone>) - Display or configure time zone for <Player>
@@ -27,7 +27,7 @@ commands:
         aliases: tz
         permission: messagemanager.timestamp.timezone.get
         usage: |
-            /<command>[ <TimeZone>] - Display or configure time zone.
+            /<command>[ <TimeZone>] - Display or configure time zone
 permissions:
     messagemanager.messagemanager.reload:
         description: Can use reload action of messagemanager command.
