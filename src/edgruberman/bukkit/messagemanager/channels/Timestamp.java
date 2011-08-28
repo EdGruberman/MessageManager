@@ -1,7 +1,7 @@
 package edgruberman.bukkit.messagemanager.channels;
 
 import java.text.SimpleDateFormat;
-import java.util.GregorianCalendar;
+import java.util.Calendar;
 import java.util.TimeZone;
 
 import edgruberman.bukkit.messagemanager.MessageManager;
@@ -13,7 +13,6 @@ public final class Timestamp {
     private TimeZone timezone;
     
     private SimpleDateFormat sdf = new SimpleDateFormat();
-    private GregorianCalendar calendar = new GregorianCalendar();
     private String formatColorized;
     
     public Timestamp(final String pattern, final String format, final TimeZone timezone) {
@@ -23,7 +22,7 @@ public final class Timestamp {
     }
     
     public String current() {
-        return this.sdf.format(this.calendar.getTime());
+        return this.sdf.format(Calendar.getInstance().getTime());
     }
     
     /**
