@@ -3,6 +3,7 @@ package edgruberman.bukkit.messagemanager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.Plugin;
@@ -12,18 +13,27 @@ import edgruberman.bukkit.messagemanager.channels.PlayerChannel;
 import edgruberman.bukkit.messagemanager.channels.ServerChannel;
 import edgruberman.bukkit.messagemanager.channels.WorldChannel;
 
-final class PlayerListener extends org.bukkit.event.player.PlayerListener {
+/**
+ * Monitor player joins, quits, and world changes to ensure Player, Server,
+ * and World channels are properly configured and ready to send messages.
+ */
+final class PlayerMonitor extends PlayerListener {
     
-    public PlayerListener(final Plugin plugin) {
+    PlayerMonitor(final Plugin plugin) {
         for (Player player : plugin.getServer().getOnlinePlayers())
-            this.reset(player);
+            PlayerMonitor.reset(player);
         
         plugin.getServer().getPluginManager().registerEvent(Event.Type.PLAYER_JOIN, this, Event.Priority.Monitor, plugin);
         plugin.getServer().getPluginManager().registerEvent(Event.Type.PLAYER_TELEPORT, this, Event.Priority.Monitor, plugin);
         plugin.getServer().getPluginManager().registerEvent(Event.Type.PLAYER_QUIT, this, Event.Priority.Monitor, plugin);
     }
     
-    private void reset(Player player) {
+    /**
+     * Reset PlayerChannel to ensure it is ready for player only messages.
+     * 
+     * @param player player to reset PlayerChannel for
+     */
+    private static void reset(final Player player) {
         PlayerChannel channel = PlayerChannel.getInstance(player);
         channel.setPlayer(player);
         channel.resetMembers();
@@ -31,7 +41,7 @@ final class PlayerListener extends org.bukkit.event.player.PlayerListener {
     
     @Override
     public void onPlayerJoin(final PlayerJoinEvent event) {
-        this.reset(event.getPlayer());
+        PlayerMonitor.reset(event.getPlayer());
         ServerChannel.getInstance(event.getPlayer().getServer()).addMember(event.getPlayer());
         WorldChannel.getInstance(event.getPlayer().getWorld()).addMember(event.getPlayer());
     }

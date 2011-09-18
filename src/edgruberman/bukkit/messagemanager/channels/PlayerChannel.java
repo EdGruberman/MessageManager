@@ -41,7 +41,7 @@ public final class PlayerChannel extends Channel {
     }
     
     @Override
-    public boolean canEqual(Object other) {
+    public boolean canEqual(final Object other) {
         return (other instanceof PlayerChannel);
     }
 }

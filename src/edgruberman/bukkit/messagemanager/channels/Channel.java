@@ -184,7 +184,7 @@ public class Channel {
         return Channel.exists(Channel.Type.CUSTOM, name);
     }
     
-    public static boolean disposeInstance(Channel channel) {
+    public static boolean disposeInstance(final Channel channel) {
         if (!Channel.exists(channel)) return false;
         
         Channel.instances.get(channel.type).remove(channel.name);
@@ -247,7 +247,7 @@ public class Channel {
         return true;
     }
     
-    public boolean canEqual(Object other) {
+    public boolean canEqual(final Object other) {
         return (other instanceof Channel);
     }
     

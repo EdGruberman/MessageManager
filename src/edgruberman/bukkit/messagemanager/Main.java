@@ -2,21 +2,25 @@ package edgruberman.bukkit.messagemanager;
 
 import java.util.TimeZone;
 
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.config.ConfigurationNode;
 
-import edgruberman.bukkit.messagemanager.channels.Channel;
+import edgruberman.bukkit.messagemanager.channels.ServerChannel;
 import edgruberman.bukkit.messagemanager.channels.Timestamp;
 
-public class Main extends org.bukkit.plugin.java.JavaPlugin {
+public class Main extends JavaPlugin {
     
     public static MessageManager messageManager;
     
     static ConfigurationFile recipients;
     static ConfigurationFile configurationFile;
     
+    @Override
     public void onLoad() {
+        // Sequence of initialization is different for this plugin as compared
+        // to my other plugins as it must first configure itself before it can
+        // properly instantiate its own MessageManager instance.
         Main.configurationFile = new ConfigurationFile(this);
-        Main.configurationFile.load();
         
         Main.recipients = new ConfigurationFile(this, "recipients.yml", null, 10);
         
@@ -24,11 +28,12 @@ public class Main extends org.bukkit.plugin.java.JavaPlugin {
         Main.messageManager.log("Version " + this.getDescription().getVersion());
     }
     
+    @Override
     public void onEnable() {
-        new PlayerListener(this);
-        new WorldListener(this);
+        new PlayerMonitor(this);
+        new WorldMonitor(this);
         
-        Channel.getInstance(this.getServer());
+        ServerChannel.getInstance(this.getServer());
         
         new edgruberman.bukkit.messagemanager.commands.MessageManager(this);
         new edgruberman.bukkit.messagemanager.commands.Timestamp(this);
@@ -37,6 +42,7 @@ public class Main extends org.bukkit.plugin.java.JavaPlugin {
         Main.messageManager.log("Plugin Enabled");
     }
     
+    @Override
     public void onDisable() {
         Main.messageManager.log("Plugin Disabled");
     }
@@ -56,9 +62,9 @@ public class Main extends org.bukkit.plugin.java.JavaPlugin {
     }
     
     public static Timestamp timestampFor(final String player) {
-        Timestamp timestamp = new Timestamp(Main.messageManager.settings.timestamp.getPattern()
-                , Main.messageManager.settings.timestamp.getFormat()
-                , Main.messageManager.settings.timestamp.getTimeZone()
+        Timestamp timestamp = new Timestamp(Main.messageManager.getSettings().timestamp.getPattern()
+                , Main.messageManager.getSettings().timestamp.getFormat()
+                , Main.messageManager.getSettings().timestamp.getTimeZone()
         );
         
         ConfigurationNode recipient = Main.recipients.getConfiguration().getNode(player);

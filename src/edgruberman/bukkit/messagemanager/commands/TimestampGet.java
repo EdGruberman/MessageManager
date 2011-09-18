@@ -36,7 +36,7 @@ class TimestampGet extends Action {
         Main.messageManager.respond(context.sender, TimestampFormat.message(timestamp), MessageLevel.STATUS, false);
         Main.messageManager.respond(context.sender, TimestampTimeZone.message(timestamp), MessageLevel.STATUS, false);
         Main.messageManager.respond(context.sender, "Example: "
-                + timestamp.format(Main.messageManager.settings.color.get(MessageLevel.INFO).get(Channel.Type.PLAYER).toString()
+                + timestamp.format(Main.messageManager.getSettings().color.get(MessageLevel.INFO).get(Channel.Type.PLAYER).toString()
                 + "Player Informational Message"), MessageLevel.STATUS, false);
     }
 }
