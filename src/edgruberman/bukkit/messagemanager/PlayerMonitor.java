@@ -1,5 +1,9 @@
 package edgruberman.bukkit.messagemanager;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -19,9 +23,11 @@ import edgruberman.bukkit.messagemanager.channels.WorldChannel;
  */
 final class PlayerMonitor extends PlayerListener {
     
+    Map<Player, Location> last = new HashMap<Player, Location>();
+    
     PlayerMonitor(final Plugin plugin) {
         for (Player player : plugin.getServer().getOnlinePlayers())
-            PlayerMonitor.reset(player);
+            this.reset(player);
         
         plugin.getServer().getPluginManager().registerEvent(Event.Type.PLAYER_JOIN, this, Event.Priority.Monitor, plugin);
         plugin.getServer().getPluginManager().registerEvent(Event.Type.PLAYER_TELEPORT, this, Event.Priority.Monitor, plugin);
@@ -33,7 +39,8 @@ final class PlayerMonitor extends PlayerListener {
      * 
      * @param player player to reset PlayerChannel for
      */
-    private static void reset(final Player player) {
+    private void reset(final Player player) {
+        this.last.put(player, player.getLocation());
         PlayerChannel channel = PlayerChannel.getInstance(player);
         channel.setPlayer(player);
         channel.resetMembers();
@@ -41,7 +48,7 @@ final class PlayerMonitor extends PlayerListener {
     
     @Override
     public void onPlayerJoin(final PlayerJoinEvent event) {
-        PlayerMonitor.reset(event.getPlayer());
+        this.reset(event.getPlayer());
         ServerChannel.getInstance(event.getPlayer().getServer()).addMember(event.getPlayer());
         WorldChannel.getInstance(event.getPlayer().getWorld()).addMember(event.getPlayer());
     }
@@ -50,9 +57,10 @@ final class PlayerMonitor extends PlayerListener {
     public void onPlayerTeleport(final PlayerTeleportEvent event) {
         if (event.isCancelled()) return;
         
-        if (event.getFrom().getWorld().equals(event.getTo().getWorld())) return;
+        Location last = this.last.get(event.getPlayer());
+        if (last.getWorld().equals(event.getTo().getWorld())) return;
         
-        WorldChannel.getInstance(event.getFrom().getWorld()).removeMember(event.getPlayer());
+        WorldChannel.getInstance(last.getWorld()).removeMember(event.getPlayer());
         WorldChannel.getInstance(event.getTo().getWorld()).addMember(event.getPlayer());
     }
     
@@ -60,5 +68,6 @@ final class PlayerMonitor extends PlayerListener {
     public void onPlayerQuit(final PlayerQuitEvent event) {
         Channel.disconnect(event.getPlayer());
         PlayerChannel.disposeInstance(event.getPlayer());
+        this.last.remove(event.getPlayer());
     }
 }
