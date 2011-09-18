@@ -60,6 +60,7 @@ final class PlayerMonitor extends PlayerListener {
         Location last = this.last.get(event.getPlayer());
         if (last.getWorld().equals(event.getTo().getWorld())) return;
         
+        this.last.put(event.getPlayer(), event.getTo());
         WorldChannel.getInstance(last.getWorld()).removeMember(event.getPlayer());
         WorldChannel.getInstance(event.getTo().getWorld()).addMember(event.getPlayer());
     }
