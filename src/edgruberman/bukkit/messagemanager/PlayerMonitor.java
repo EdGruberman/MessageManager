@@ -58,6 +58,8 @@ final class PlayerMonitor extends PlayerListener {
         if (event.isCancelled()) return;
         
         Location last = this.last.get(event.getPlayer());
+        if (last == null) return; // Player connection problem can cause teleports after a quit
+        
         if (last.getWorld().equals(event.getTo().getWorld())) return;
         
         this.last.put(event.getPlayer(), event.getTo());
