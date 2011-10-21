@@ -2,8 +2,8 @@ package edgruberman.bukkit.messagemanager;
 
 import java.util.TimeZone;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.util.config.ConfigurationNode;
 
 import edgruberman.bukkit.messagemanager.channels.ServerChannel;
 import edgruberman.bukkit.messagemanager.channels.Timestamp;
@@ -17,9 +17,6 @@ public class Main extends JavaPlugin {
     
     @Override
     public void onLoad() {
-        // Sequence of initialization is different for this plugin as compared
-        // to my other plugins as it must first configure itself before it can
-        // properly instantiate its own MessageManager instance.
         Main.configurationFile = new ConfigurationFile(this);
         
         Main.recipients = new ConfigurationFile(this, "recipients.yml", null, 10);
@@ -53,12 +50,7 @@ public class Main extends JavaPlugin {
     }
     
     public static boolean useTimestampFor(final String player) {
-        boolean useTimestamp = Settings.DEFAULT_MESSAGE_USE_TIMESTAMP;
-        
-        ConfigurationNode recipient = Main.recipients.getConfiguration().getNode(player);
-        if (recipient == null) return useTimestamp;
-        
-        return recipient.getBoolean("useTimestamp", useTimestamp);
+        return Main.recipients.getConfig().getBoolean(player + ".useTimestamp", Settings.DEFAULT_MESSAGE_USE_TIMESTAMP);
     }
     
     public static Timestamp timestampFor(final String player) {
@@ -67,7 +59,7 @@ public class Main extends JavaPlugin {
                 , Main.messageManager.getSettings().timestamp.getTimeZone()
         );
         
-        ConfigurationNode recipient = Main.recipients.getConfiguration().getNode(player);
+        ConfigurationSection recipient = Main.recipients.getConfig().getConfigurationSection(player);
         if (recipient == null) return timestamp;
         
         timestamp.setFormat(recipient.getString("timestamp.format", timestamp.getFormat()));
@@ -79,14 +71,14 @@ public class Main extends JavaPlugin {
     
     public static void saveRecipient(final String player, final Timestamp timestamp, final Boolean useTimestamp) {
         if (timestamp == null) {
-            Main.recipients.getConfiguration().setProperty(player + ".timestamp", null);
+            Main.recipients.getConfig().set(player + ".timestamp", null);
         } else {
-            Main.recipients.getConfiguration().setProperty(player + ".timestamp.pattern", timestamp.getPattern());
-            Main.recipients.getConfiguration().setProperty(player + ".timestamp.format", timestamp.getFormat());
-            Main.recipients.getConfiguration().setProperty(player + ".timestamp.timezone", timestamp.getTimeZone().getID());
+            Main.recipients.getConfig().set(player + ".timestamp.pattern", timestamp.getPattern());
+            Main.recipients.getConfig().set(player + ".timestamp.format", timestamp.getFormat());
+            Main.recipients.getConfig().set(player + ".timestamp.timezone", timestamp.getTimeZone().getID());
         }
         
-        Main.recipients.getConfiguration().setProperty(player + ".useTimestamp", useTimestamp);
+        Main.recipients.getConfig().set(player + ".useTimestamp", useTimestamp);
         
         Main.recipients.save();
     }

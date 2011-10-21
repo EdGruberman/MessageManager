@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import edgruberman.bukkit.messagemanager.Main;
+import edgruberman.bukkit.messagemanager.MessageLevel;
 
 public class Channel {
     
@@ -38,8 +39,10 @@ public class Channel {
         return this.addMember(Recipient.getInstance(member));
     }
     
-    public boolean addMember(final Recipient member) {        
-        return this.members.add(member);
+    public boolean addMember(final Recipient member) {
+        boolean added = this.members.add(member);
+        if (added) Main.messageManager.log(this.toString() + " Added member " + member.getPlayer().getName(), MessageLevel.FINER);
+        return added;
     }
     
     public boolean removeMember(final Player member) {
@@ -47,7 +50,9 @@ public class Channel {
     }
     
     public boolean removeMember(final Recipient member) {
-        return this.members.remove(member);
+        boolean removed = this.members.remove(member);
+        if (removed) Main.messageManager.log(this.toString() + " Removed member " + member.getPlayer().getName(), MessageLevel.FINER);
+        return removed;
     }
     
     public static void disconnect(final Player player) {

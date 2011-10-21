@@ -6,8 +6,8 @@ import java.util.TimeZone;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.util.config.ConfigurationNode;
 
 import edgruberman.bukkit.messagemanager.channels.Channel;
 import edgruberman.bukkit.messagemanager.channels.Timestamp;
@@ -81,22 +81,22 @@ public final class Settings {
     public Timestamp timestamp = new Timestamp(Settings.DEFAULT_TIMESTAMP_PATTERN, Settings.DEFAULT_TIMESTAMP_FORMAT, Settings.DEFAULT_TIMESTAMP_TIMEZONE);
     public Map<MessageLevel, Map<Channel.Type, ChatColor>> color = new HashMap<MessageLevel, Map<Channel.Type, ChatColor>>();
     
-    private ConfigurationNode configuration;
+    private FileConfiguration config;
     private boolean isLoaded = false;
     
     private Settings() {}
     
     Settings(final Plugin owner) {
         if (!Settings.parent.isLoaded)
-            Settings.parent.load(Bukkit.getServer().getPluginManager().getPlugin("MessageManager").getConfiguration());
+            Settings.parent.load(Bukkit.getServer().getPluginManager().getPlugin("MessageManager").getConfig());
         
         ConfigurationFile file = new ConfigurationFile(owner, "MessageManager.yml");
         file.load();
-        this.load(file.getConfiguration());
+        this.load(file.getConfig());
     }
     
-    private void load(final ConfigurationNode configuration) {
-        this.configuration = configuration;
+    private void load(final FileConfiguration configuration) {
+        this.config = configuration;
         
         for (Channel.Type type : Channel.Type.values()) {
             this.level.put(type, this.parseMessageLevel(
@@ -145,28 +145,28 @@ public final class Settings {
     }
     
     private MessageLevel parseMessageLevel(final String path, final MessageLevel parentDefault, final MessageLevel codeDefault) {
-        String name = this.configuration.getString(path);
+        String name = this.config.getString(path);
         if (name == null) return (parentDefault != null ? parentDefault : codeDefault);
         
         return MessageLevel.parse(name);
     }
     
     private ChatColor parseChatColor(final String path, final ChatColor parentDefault, final ChatColor codeDefault) {
-        String name = this.configuration.getString(path);
+        String name = this.config.getString(path);
         if (name == null) return (parentDefault != null ? parentDefault : codeDefault);
         
         return ChatColor.valueOf(name);
     }
     
     private String parseString(final String path, final String parentDefault, final String codeDefault) {
-        String name = this.configuration.getString(path);
+        String name = this.config.getString(path);
         if (name == null) return (parentDefault != null ? parentDefault : codeDefault);
         
         return name;
     }
     
     private TimeZone parseTimeZone(final String path, final TimeZone parentDefault, final TimeZone codeDefault) {
-        String name = this.configuration.getString(path);
+        String name = this.config.getString(path);
         if (name == null) return (parentDefault != null ? parentDefault : codeDefault);
         
         return TimeZone.getTimeZone(name);
