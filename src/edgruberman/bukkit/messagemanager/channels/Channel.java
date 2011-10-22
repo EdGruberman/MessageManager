@@ -91,8 +91,7 @@ public class Channel {
         if (!Channel.exists(type, name))
             switch(type) {
             case PLAYER:
-                Player player = Bukkit.getServer().getPlayer(name);
-                if (!name.equalsIgnoreCase(player.getName())) player = null;
+                Player player = Bukkit.getServer().getPlayerExact(name);
                 if (player == null) return null;
                 
                 new PlayerChannel(player);

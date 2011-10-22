@@ -17,10 +17,6 @@ public final class PlayerChannel extends Channel {
         return this.player;
     }
     
-    public void setPlayer(final Player player) {
-        this.player = player;
-    }
-    
     @Override
     public void resetMembers() {
         super.resetMembers();

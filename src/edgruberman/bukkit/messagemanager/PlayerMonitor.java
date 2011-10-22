@@ -26,29 +26,18 @@ final class PlayerMonitor extends PlayerListener {
     Map<Player, Location> last = new HashMap<Player, Location>();
     
     PlayerMonitor(final Plugin plugin) {
+        // Pre-load player channels for all existing players
         for (Player player : plugin.getServer().getOnlinePlayers())
-            this.reset(player);
-        
+            PlayerChannel.getInstance(player);
+            
         plugin.getServer().getPluginManager().registerEvent(Event.Type.PLAYER_JOIN, this, Event.Priority.Monitor, plugin);
         plugin.getServer().getPluginManager().registerEvent(Event.Type.PLAYER_TELEPORT, this, Event.Priority.Monitor, plugin);
         plugin.getServer().getPluginManager().registerEvent(Event.Type.PLAYER_QUIT, this, Event.Priority.Monitor, plugin);
     }
     
-    /**
-     * Reset PlayerChannel to ensure it is ready for player only messages.
-     * 
-     * @param player player to reset PlayerChannel for
-     */
-    private void reset(final Player player) {
-        this.last.put(player, player.getLocation());
-        PlayerChannel channel = PlayerChannel.getInstance(player);
-        channel.setPlayer(player);
-        channel.resetMembers();
-    }
-    
     @Override
     public void onPlayerJoin(final PlayerJoinEvent event) {
-        this.reset(event.getPlayer());
+        PlayerChannel.getInstance(event.getPlayer());
         ServerChannel.getInstance(event.getPlayer().getServer()).addMember(event.getPlayer());
         WorldChannel.getInstance(event.getPlayer().getWorld()).addMember(event.getPlayer());
     }
