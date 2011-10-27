@@ -26,10 +26,10 @@ final class PlayerMonitor extends PlayerListener {
     Map<Player, Location> last = new HashMap<Player, Location>();
     
     PlayerMonitor(final Plugin plugin) {
-        // Pre-load player channels for all existing players
+        // Create player channels for all existing players
         for (Player player : plugin.getServer().getOnlinePlayers())
             PlayerChannel.getInstance(player);
-            
+        
         plugin.getServer().getPluginManager().registerEvent(Event.Type.PLAYER_JOIN, this, Event.Priority.Monitor, plugin);
         plugin.getServer().getPluginManager().registerEvent(Event.Type.PLAYER_TELEPORT, this, Event.Priority.Monitor, plugin);
         plugin.getServer().getPluginManager().registerEvent(Event.Type.PLAYER_QUIT, this, Event.Priority.Monitor, plugin);
@@ -37,6 +37,7 @@ final class PlayerMonitor extends PlayerListener {
     
     @Override
     public void onPlayerJoin(final PlayerJoinEvent event) {
+        this.last.put(event.getPlayer(), event.getPlayer().getLocation());
         PlayerChannel.getInstance(event.getPlayer());
         ServerChannel.getInstance(event.getPlayer().getServer()).addMember(event.getPlayer());
         WorldChannel.getInstance(event.getPlayer().getWorld()).addMember(event.getPlayer());
@@ -47,8 +48,11 @@ final class PlayerMonitor extends PlayerListener {
         if (event.isCancelled()) return;
         
         Location last = this.last.get(event.getPlayer());
-        Main.messageManager.log("Player " + event.getPlayer().getName() + " last recorded at " + last + " teleporting to " + event.getTo(), MessageLevel.FINEST);
-        if (last == null) return; // Player connection problem can cause teleports after a quit
+        Main.messageManager.log("Player " + event.getPlayer().getName() + " last recorded at [" + (last != null ? last.getWorld().getName() : "") + "] teleporting to [" + event.getTo().getWorld().getName() + "]", MessageLevel.FINEST);
+        if (last == null) {
+            this.last.put(event.getPlayer(), event.getTo());
+            return;
+        }
         
         if (last.getWorld().equals(event.getTo().getWorld())) return;
         
