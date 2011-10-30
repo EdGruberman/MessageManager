@@ -13,7 +13,7 @@ public final class WorldChannel extends Channel {
         this.world = world;
         this.resetMembers();
     }
-        
+    
     @Override
     public void resetMembers() {
         super.resetMembers();

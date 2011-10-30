@@ -27,10 +27,9 @@ public class Main extends JavaPlugin {
     
     @Override
     public void onEnable() {
-        new PlayerMonitor(this);
-        new WorldMonitor(this);
-        
         ServerChannel.getInstance(this.getServer());
+        new WorldMonitor(this);
+        new PlayerMonitor(this);
         
         new edgruberman.bukkit.messagemanager.commands.MessageManager(this);
         new edgruberman.bukkit.messagemanager.commands.Timestamp(this);

@@ -19,9 +19,8 @@ import edgruberman.bukkit.messagemanager.channels.WorldChannel;
 final class PlayerMonitor extends PlayerListener {
     
     PlayerMonitor(final Plugin plugin) {
-        // Create player channels for all existing players
         for (Player player : plugin.getServer().getOnlinePlayers())
-            PlayerChannel.getInstance(player);
+            this.addPlayer(player);
         
         plugin.getServer().getPluginManager().registerEvent(Event.Type.PLAYER_JOIN, this, Event.Priority.Monitor, plugin);
         plugin.getServer().getPluginManager().registerEvent(Event.Type.PLAYER_CHANGED_WORLD, this, Event.Priority.Monitor, plugin);
@@ -30,15 +29,11 @@ final class PlayerMonitor extends PlayerListener {
     
     @Override
     public void onPlayerJoin(final PlayerJoinEvent event) {
-        PlayerChannel.getInstance(event.getPlayer());
-        ServerChannel.getInstance(event.getPlayer().getServer()).addMember(event.getPlayer());
-        WorldChannel.getInstance(event.getPlayer().getWorld()).addMember(event.getPlayer());
+        this.addPlayer(event.getPlayer());
     }
     
     @Override
     public void onPlayerChangedWorld(final PlayerChangedWorldEvent event) {
-        Main.messageManager.log("Player " + event.getPlayer().getName() + " changed world from [" + event.getFrom().getName() + "] teleporting to [" + event.getPlayer().getWorld().getName() + "]", MessageLevel.FINEST);
-        
         WorldChannel.getInstance(event.getFrom()).removeMember(event.getPlayer());
         WorldChannel.getInstance(event.getPlayer().getWorld()).addMember(event.getPlayer());
     }
@@ -47,5 +42,11 @@ final class PlayerMonitor extends PlayerListener {
     public void onPlayerQuit(final PlayerQuitEvent event) {
         Channel.disconnect(event.getPlayer());
         PlayerChannel.disposeInstance(event.getPlayer());
+    }
+    
+    private void addPlayer(final Player player) {
+        PlayerChannel.getInstance(player);
+        ServerChannel.getInstance(player.getServer()).addMember(player);
+        WorldChannel.getInstance(player.getWorld()).addMember(player);
     }
 }

@@ -17,6 +17,7 @@ import edgruberman.bukkit.messagemanager.channels.WorldChannel;
 final class WorldMonitor extends WorldListener {
     
     WorldMonitor(final Plugin plugin) {
+        // Create world channel for each existing worlds
         for (World world : plugin.getServer().getWorlds()) {
             WorldChannel channel = WorldChannel.getInstance(world);
             channel.resetMembers();
