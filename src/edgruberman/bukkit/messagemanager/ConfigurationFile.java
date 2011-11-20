@@ -123,7 +123,7 @@ public final class ConfigurationFile {
         if (this.file.exists()) return;
         
         // Check if defaults are supplied in JAR
-        InputStream defaults = (this.defaults != null ? this.owner.getResource(this.defaults) : null);
+        InputStream defaults = (this.defaults != null ? this.owner.getClass().getResourceAsStream(this.defaults) : null);
         if (defaults == null) {
             // No file, no defaults, reset to empty configuration
             this.config = new YamlConfiguration();
@@ -204,6 +204,6 @@ public final class ConfigurationFile {
             this.lastSaveAttempt = System.currentTimeMillis();
         }
         
-        Main.messageManager.log("Saved configuration file: " + this.file, MessageLevel.FINEST);
+        if (Main.messageManager != null) Main.messageManager.log("Saved configuration file: " + this.file, MessageLevel.FINEST);
     }
 }
