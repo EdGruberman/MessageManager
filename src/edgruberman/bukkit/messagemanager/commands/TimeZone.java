@@ -1,31 +1,35 @@
 package edgruberman.bukkit.messagemanager.commands;
 
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import edgruberman.bukkit.messagemanager.Permission;
+import edgruberman.bukkit.messagemanager.commands.util.Action;
+import edgruberman.bukkit.messagemanager.commands.util.Context;
+import edgruberman.bukkit.messagemanager.commands.util.Handler;
 
-public final class TimeZone extends Command implements org.bukkit.command.CommandExecutor {
-    
+public final class TimeZone extends Action {
+
+    static Action emulate;
+
     public TimeZone(final JavaPlugin plugin) {
-        super(plugin, "timezone", Permission.TIMESTAMP_TIMEZONE_GET);
-        this.setExecutorOf(this);
+        super(new Handler(plugin, "timezone"), "timezone", emulate.permission);
     }
-    
-    @Override
-    public boolean onCommand(final CommandSender sender, final org.bukkit.command.Command command
-            , final String label, final String[] args) {
-        Context context = super.parse(this, sender, command, label, args);
-        
-        if (!(context.sender instanceof Player)) return false;
 
-        Player player = (Player) context.sender;
-        
-        // Equivalent: /<command> <Player> timezone (get|set <TimeZone>)
-        String timezone = null;
-        if (context.arguments.size() > 0) timezone = context.arguments.get(0);
-        String[] equivalent = {player.getName(), "timezone", (timezone == null ? "get" : "set"), (timezone == null ? "" : timezone)};
-        return context.owner.plugin.getCommand("timestamp").execute(sender, label, equivalent);
+    @Override
+    public boolean matches(Context context) {
+        return super.matchesBreadcrumb(context);
     }
+
+    @Override
+    public boolean perform(final Context context) {
+        context.arguments.add(0, "timezone");
+
+        TimeZone.emulate.handler.command.execute(
+                context.sender
+                , TimeZone.emulate.handler.command.getLabel()
+                , context.arguments.toArray(new String[context.arguments.size()])
+        );
+
+        return true;
+    }
+
 }

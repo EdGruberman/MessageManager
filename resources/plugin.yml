@@ -15,13 +15,13 @@ commands:
         aliases: [ts, stamp]
         permission: messagemanager.timestamp
         usage: |
-            /<command>[ <Player>] - Display current timestamp settings for <Player>
-            /<command>[ <Player>] reset - Revert all changes back to default for <Player>
-            /<command>[ <Player>] on - Enable timestamp for <Player>
-            /<command>[ <Player>] off - Disable timestamp for <Player>
-            /<command>[ <Player>] pattern([ get]| set <Pattern>) - Display or configure pattern for <Player>
-            /<command>[ <Player>] format([ get]| set <Format>) - Display or configure format for <Player>
-            /<command>[ <Player>] timezone([ get]| set <TimeZone>) - Display or configure time zone for <Player>
+            /<command>[ get][ <Player>] - Display current timestamp
+            /<command> reset[ <Player>] - Revert to default
+            /<command> on[ <Player>] - Enable timestamp
+            /<command> off[ <Player>] - Disable timestamp
+            /<command> pattern([ get][ <Player>]| set[ <Player>] <Pattern>) - Manage pattern
+            /<command> format([ get][ <Player>]| set[ <Player>] <Format>) - Manage format
+            /<command> timezone([ get][ <Player>]| set[ <Player>] <TimeZone>) - Manage time zone
     timezone:
         description: Manages timezone setting for message timestamps for self.
         aliases: tz

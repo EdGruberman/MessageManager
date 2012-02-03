@@ -1,82 +1,46 @@
 package edgruberman.bukkit.messagemanager.commands;
 
-import java.util.Locale;
-
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import edgruberman.bukkit.messagemanager.Main;
-import edgruberman.bukkit.messagemanager.MessageLevel;
-import edgruberman.bukkit.messagemanager.Permission;
+import edgruberman.bukkit.messagemanager.commands.util.Handler;
 
-public final class Timestamp extends Command implements org.bukkit.command.CommandExecutor {
-    
+public final class Timestamp extends Handler {
+
     public Timestamp(final JavaPlugin plugin) {
-        super(plugin, "timestamp", Permission.TIMESTAMP);
-        this.setExecutorOf(this);
-        
-        this.registerAction(new TimestampGet(this), true);
-        this.registerAction(new TimestampPattern(this));
-        this.registerAction(new TimestampFormat(this));
-        this.registerAction(new TimestampTimeZone(this));
-        this.registerAction(new TimestampReset(this));
-        this.registerAction(new TimestampOn(this));
-        this.registerAction(new TimestampOff(this));
+        super(plugin, "timestamp");
+        new TimestampGet(this);
+        new TimestampReset(this);
+        new TimestampOn(this);
+        new TimestampOff(this);
+        new TimestampPattern(this);
+        new TimestampFormat(this);
+        new TimestampTimeZone(this);
     }
-    
-    @Override
-    public boolean onCommand(final CommandSender sender, final org.bukkit.command.Command command
-            , final String label, final String[] args) {
-        Context context = super.parse(this, sender, command, label, args);
-        
-        if (!this.isAllowed(context.sender)) {
-            Main.messageManager.respond(context.sender, "You are not allowed to use the " + context.label + " command.", MessageLevel.RIGHTS, false);
-            return true;
-        }
-        
-        if (context.action == null) {
-            Main.messageManager.respond(context.sender, "Unrecognized action for the " + context.label + " command.", MessageLevel.WARNING, false);
-            return true;
-        }
-        
-        if (!context.action.isAllowed(context.sender)) {
-            Main.messageManager.respond(context.sender, "You are not allowed to use the " + context.action.name + " action of the " + context.label + " command.", MessageLevel.RIGHTS, false);
-            return true;
-        }
-        
-        context.action.execute(context);
-        
-        return true;
+
+    /**
+     * Determines if sender has permission for player.
+     *
+     * @param sender
+     * @param permission
+     * @param playerName
+     * @return
+     */
+    static boolean isAllowed(final CommandSender sender, final String permission, final String playerName) {
+        // Always allowed for self
+        if ((sender instanceof Player) && ((Player) sender).getName().equalsIgnoreCase(playerName)) return true;
+
+        // Check if sender is allowed for all players
+        if (sender.hasPermission(permission + ".player.*")) return true;
+
+        // Check if sender is allowed for specific player
+        if (sender.hasPermission(permission + ".player." + playerName)) return true;
+
+        return false;
     }
-    
-    static String parsePlayer(final Context context) {
-        String name = (context.matches.size() >= 1 ? context.matches.get(0) : null);
-        if (name != null && name.equals("")) name = null;
-        
-        if (context.sender instanceof Player && name == null)
-            name = ((Player) context.sender).getName();
-        
-        return name;
-    }
-    
-    static String parseOperation(final Context context) {
-        String operation = "get";
-        if (context.matches.size() < 2) return operation;
-        
-        operation = context.matches.get(1);
-        if (operation == null || operation.equals("?")) {
-            operation = "get";
-        } else if (operation.equals("=")) {
-            operation = "set";
-        } else {
-            operation = operation.toLowerCase(Locale.ENGLISH);
-        }
-        
-        return operation;
-    }
-    
+
     /**
      * Returns player only if it is a full and case insensitive name match.
      *
@@ -86,9 +50,10 @@ public final class Timestamp extends Command implements org.bukkit.command.Comma
     static Player getExactPlayer(String name) {
         Player player = Bukkit.getServer().getPlayer(name);
         if (player == null) return null;
-        
+
         if (!player.getName().equalsIgnoreCase(name)) return null;
-        
+
         return player;
     }
+
 }
