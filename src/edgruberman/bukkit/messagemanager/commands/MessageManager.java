@@ -8,7 +8,7 @@ public final class MessageManager extends Handler {
 
     public MessageManager(final JavaPlugin plugin) {
         super(plugin, "messagemanager");
-        this.actions.add(new MessageManagerReload(this));
+        new MessageManagerReload(this);
     }
 
 }
