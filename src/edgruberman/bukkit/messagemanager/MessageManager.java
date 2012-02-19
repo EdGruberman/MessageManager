@@ -419,7 +419,7 @@ public final class MessageManager {
             }
 
             // Replace hex code with color.
-            ChatColor color = ChatColor.getByChar(m.group(1));
+            ChatColor color = ChatColor.getByChar(m.group(1).toLowerCase());
             if (color == null) continue;
 
             colors.push(color.toString());
