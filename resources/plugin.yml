@@ -1,7 +1,7 @@
-name: MessageManager
-version: %VERSION%
+name: @NAME@
 description: Messaging Channels API
-author: EdGruberman (ed@rjump.com)
+version: @VERSION@
+author: @AUTHOR@
 main: edgruberman.bukkit.messagemanager.Main
 commands:
     messagemanager:
