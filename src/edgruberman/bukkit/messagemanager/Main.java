@@ -21,7 +21,6 @@ public class Main extends JavaPlugin {
         Main.recipients = new ConfigurationFile(this, "recipients.yml", null, 60);
 
         Main.messageManager = new MessageManager(this);
-        Main.messageManager.log("Version " + this.getDescription().getVersion());
     }
 
     @Override
@@ -32,13 +31,11 @@ public class Main extends JavaPlugin {
         new edgruberman.bukkit.messagemanager.commands.MessageManager(this);
         new edgruberman.bukkit.messagemanager.commands.Timestamp(this);
         new edgruberman.bukkit.messagemanager.commands.TimeZone(this);
-
-        Main.messageManager.log("Plugin Enabled");
     }
 
     @Override
     public void onDisable() {
-        Main.messageManager.log("Plugin Disabled");
+        if (Main.recipients.isSaveQueued()) Main.recipients.save();
     }
 
     public void loadConfiguration() {
@@ -51,12 +48,12 @@ public class Main extends JavaPlugin {
     }
 
     public static Timestamp timestampFor(final String player) {
-        Timestamp timestamp = new Timestamp(Main.messageManager.getSettings().timestamp.getPattern()
+        final Timestamp timestamp = new Timestamp(Main.messageManager.getSettings().timestamp.getPattern()
                 , Main.messageManager.getSettings().timestamp.getFormat()
                 , Main.messageManager.getSettings().timestamp.getTimeZone()
         );
 
-        ConfigurationSection recipient = Main.recipients.getConfig().getConfigurationSection(player);
+        final ConfigurationSection recipient = Main.recipients.getConfig().getConfigurationSection(player);
         if (recipient == null) return timestamp;
 
         timestamp.setFormat(recipient.getString("timestamp.format", timestamp.getFormat()));
