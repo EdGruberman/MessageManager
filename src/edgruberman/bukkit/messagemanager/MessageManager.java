@@ -229,7 +229,7 @@ public final class MessageManager {
             line = this.format(channel, level, line);
 
             if (channel.type != Channel.Type.LOG)
-                this.log(this.formatLog(channel, line), level);
+                this.owner.getLogger().log(level, String.format(this.settings.log.get(channel.type), line, channel.name));
 
             switch(channel.type) {
             case PLAYER: ((PlayerChannel) channel).send(line, useTimestamp); break;
@@ -240,13 +240,6 @@ public final class MessageManager {
             default: break;
             }
         }
-    }
-
-    private String formatLog(final Channel channel, final String message) {
-        return String.format(this.settings.log.get(channel.type)
-                , message
-                , channel.name
-        );
     }
 
     // Player -----------------------------------------------------------------
@@ -466,7 +459,7 @@ public final class MessageManager {
         if (target instanceof Player) {
             this.send((Player) target, message, level, useTimestamp);
         } else {
-            this.log(message, level);
+            this.owner.getLogger().log(level, message);
         }
     }
 

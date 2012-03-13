@@ -13,11 +13,6 @@ class TimestampFormat extends Action {
     }
 
     @Override
-    public boolean matches(Context context) {
-        return super.matchesBreadcrumb(context);
-    }
-
-    @Override
     public boolean perform(final Context context) {
         // Example: /<command> format([ get][ <Player>]| set[ <Player>] <Format>)
         return this.children.get(0).perform(context);

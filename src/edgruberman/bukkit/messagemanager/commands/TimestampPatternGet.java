@@ -15,11 +15,6 @@ final class TimestampPatternGet extends Action {
     }
 
     @Override
-    public boolean matches(Context context) {
-        return super.matchesBreadcrumb(context);
-    }
-
-    @Override
     public boolean perform(final Context context) {
         // Example: /<command> pattern[ get][ <Player>]
         int position = 2;
@@ -41,7 +36,7 @@ final class TimestampPatternGet extends Action {
             return true;
         }
 
-        edgruberman.bukkit.messagemanager.channels.Timestamp timestamp = Main.timestampFor(targetName);
+        final edgruberman.bukkit.messagemanager.channels.Timestamp timestamp = Main.timestampFor(targetName);
         Main.messageManager.respond(context.sender, targetName + "'s Timestamp " + TimestampPatternGet.message(timestamp), MessageLevel.STATUS, false);
 
         return true;

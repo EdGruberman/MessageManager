@@ -11,7 +11,7 @@ public final class Timestamp extends Handler {
 
     public Timestamp(final JavaPlugin plugin) {
         super(plugin, "timestamp");
-        new TimestampGet(this);
+        new TimestampGet(this).setDefault();
         new TimestampReset(this);
         new TimestampOn(this);
         new TimestampOff(this);
@@ -47,8 +47,8 @@ public final class Timestamp extends Handler {
      * @param name name of player
      * @return player that matches name
      */
-    static Player getExactPlayer(String name) {
-        Player player = Bukkit.getServer().getPlayer(name);
+    static Player getExactPlayer(final String name) {
+        final Player player = Bukkit.getServer().getPlayer(name);
         if (player == null) return null;
 
         if (!player.getName().equalsIgnoreCase(name)) return null;

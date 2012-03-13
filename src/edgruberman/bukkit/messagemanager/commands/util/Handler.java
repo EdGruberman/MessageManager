@@ -3,6 +3,7 @@ package edgruberman.bukkit.messagemanager.commands.util;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -35,18 +36,27 @@ public class Handler implements CommandExecutor  {
 
     @Override
     public boolean onCommand(final CommandSender sender, final Command command, final String label, final String[] args) {
-        Main.messageManager.log(sender.getName() + " issued command: " + label + " " + Arrays.toString(args), MessageLevel.FINE);
-        Context context = new Context(this, sender, label, args);
+        this.command.getPlugin().getLogger().log(Level.FINER, sender.getName() + " issued command: " + label + " " + Arrays.toString(args));
 
+        final Context context = new Context(this, sender, label, args);
         if (!context.action.isAllowed(context)) return true;
 
         if (context.action.perform(context)) return true;
 
         // Send usage information on error
-        for (String line : context.action.handler.command.getUsage().replace("<command>", context.label).split("\n"))
+        for (final String line : context.action.handler.command.getUsage().replace("<command>", context.label).split("\n"))
             Main.messageManager.respond(context.sender, line, MessageLevel.NOTICE, false);
 
         return true; // Always tell Bukkit this is successful as usage message errors are handled internally
+    }
+
+    public void setDefaultAction(final Action action) {
+        this.actions.remove(action);
+        this.actions.add(0, action);
+    }
+
+    public Action getDefaultAction() {
+        return this.actions.get(0);
     }
 
     /**
@@ -57,11 +67,16 @@ public class Handler implements CommandExecutor  {
     private void setExecutorOf(final JavaPlugin plugin, final String label) {
         this.command = plugin.getCommand(label);
         if (this.command == null) {
-            Main.messageManager.log("Unable to register " + label + " command.", MessageLevel.WARNING);
+            this.command.getPlugin().getLogger().log(Level.WARNING, "Unable to register command: " + label);
             return;
         }
 
         this.command.setExecutor(this);
+    }
+
+    @Override
+    public String toString() {
+        return "Handler [command=" + this.command + "]";
     }
 
 }

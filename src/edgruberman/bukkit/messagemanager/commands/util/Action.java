@@ -29,6 +29,7 @@ public abstract class Action {
      */
     protected Action(final JavaPlugin plugin, final String label) {
         this(new Handler(plugin, label), label, (String) null);
+        this.setDefault();
     }
 
     /**
@@ -150,6 +151,13 @@ public abstract class Action {
     }
 
     /**
+     * Set this action as the command handler's default action.
+     */
+    public void setDefault() {
+        this.handler.setDefaultAction(this);
+    }
+
+    /**
      * Determines if this action is applicable to be called for the given
      * arguments based on the first argument matching the action name.
      * Override this method for more complex action assignment.
@@ -157,10 +165,10 @@ public abstract class Action {
      * @param context execution context
      * @return true if this action should be performed; false otherwise
      */
-    public boolean matchesBreadcrumb(final Context context) {
+    public boolean matches(final Context context)  {
         if (this.handler.actions.size() == 1) return true;
 
-        int generation = this.getGeneration();
+        final int generation = this.getGeneration();
 
         if (context.arguments.size() <= generation) return false;
 
@@ -169,14 +177,10 @@ public abstract class Action {
         return false;
     }
 
-    /**
-     * Determines if this action is applicable to be called for the given
-     * arguments.
-     *
-     * @param context execution context
-     * @return true if this action should be performed; false otherwise
-     */
-    public abstract boolean matches(final Context context);
+    @Override
+    public String toString() {
+        return "Action [handler=" + this.handler + ", getNamePath()=" + this.getNamePath() + "]";
+    }
 
     /**
      * Performs this action.
@@ -185,4 +189,5 @@ public abstract class Action {
      * @return true if the action was performed as expected; false if usage date should be shown
      */
     public abstract boolean perform(final Context context);
+
 }

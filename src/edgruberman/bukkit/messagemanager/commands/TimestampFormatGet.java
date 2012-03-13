@@ -15,11 +15,6 @@ class TimestampFormatGet extends Action {
     }
 
     @Override
-    public boolean matches(Context context) {
-        return super.matchesBreadcrumb(context);
-    }
-
-    @Override
     public boolean perform(final Context context) {
         // Example: /<command> format[ get][ <Player>]
         int position = 2;
@@ -41,7 +36,7 @@ class TimestampFormatGet extends Action {
             return true;
         }
 
-        edgruberman.bukkit.messagemanager.channels.Timestamp timestamp = Main.timestampFor(targetName);
+        final edgruberman.bukkit.messagemanager.channels.Timestamp timestamp = Main.timestampFor(targetName);
         Main.messageManager.respond(context.sender, targetName + "'s Timestamp " + TimestampFormatGet.message(timestamp), MessageLevel.STATUS, false);
 
         return true;
@@ -50,4 +45,5 @@ class TimestampFormatGet extends Action {
     static String message(final edgruberman.bukkit.messagemanager.channels.Timestamp timestamp) {
         return "Format: " + timestamp.getFormat().replaceAll("&", "&&") + " (%1$s=msg*, %2$s=time)";
     }
+
 }

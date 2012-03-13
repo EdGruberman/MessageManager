@@ -17,11 +17,6 @@ final class TimestampOff extends Action {
     }
 
     @Override
-    public boolean matches(Context context) {
-        return super.matchesBreadcrumb(context);
-    }
-
-    @Override
     public boolean perform(final Context context) {
         // Example: /<command> off[ <Player>]
         OfflinePlayer target = Parser.parsePlayer(context, 1);

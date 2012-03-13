@@ -11,12 +11,7 @@ public final class TimeZone extends Action {
     static Action emulate;
 
     public TimeZone(final JavaPlugin plugin) {
-        super(new Handler(plugin, "timezone"), "timezone", emulate.permission);
-    }
-
-    @Override
-    public boolean matches(Context context) {
-        return super.matchesBreadcrumb(context);
+        super(new Handler(plugin, "timezone"), "timezone", TimeZone.emulate.permission);
     }
 
     @Override

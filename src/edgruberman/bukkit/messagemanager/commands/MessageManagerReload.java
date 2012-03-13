@@ -20,9 +20,4 @@ final class MessageManagerReload extends Action {
         return true;
     }
 
-    @Override
-    public boolean matches(Context context) {
-        return super.matchesBreadcrumb(context);
-    }
-
 }

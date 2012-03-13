@@ -16,11 +16,6 @@ final class TimestampFormatSet extends Action {
     }
 
     @Override
-    public boolean matches(Context context) {
-        return super.matchesBreadcrumb(context);
-    }
-
-    @Override
     public boolean perform(final Context context) {
         // Example: /<command> format set[ <Player>] <Format>
         if (context.arguments.size() < 3) return false;
@@ -43,7 +38,7 @@ final class TimestampFormatSet extends Action {
         }
 
 
-        String format = (context.arguments.size() >= 4 ? context.arguments.get(3) : context.arguments.get(2));
+        final String format = (context.arguments.size() >= 4 ? context.arguments.get(3) : context.arguments.get(2));
         if (format == null) {
             Main.messageManager.respond(context.sender, "Unable to determine format", MessageLevel.SEVERE, false);
             return false;

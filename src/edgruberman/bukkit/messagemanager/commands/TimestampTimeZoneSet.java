@@ -27,11 +27,6 @@ public class TimestampTimeZoneSet extends Action {
     }
 
     @Override
-    public boolean matches(Context context) {
-        return super.matchesBreadcrumb(context);
-    }
-
-    @Override
     public boolean perform(final Context context) {
         // Example: /<command> timezone set[ <Player>]<TimeZone>
         if (context.arguments.size() < 3) return false;
@@ -55,7 +50,7 @@ public class TimestampTimeZoneSet extends Action {
 
         edgruberman.bukkit.messagemanager.channels.Timestamp timestamp;
         boolean useTimestamp;
-        String value = (context.arguments.size() >= 4 ? context.arguments.get(3) : context.arguments.get(2));
+        final String value = (context.arguments.size() >= 4 ? context.arguments.get(3) : context.arguments.get(2));
         if (value == null) {
             Main.messageManager.respond(context.sender, "Unable to determine timezone", MessageLevel.SEVERE, false);
             return false;
@@ -72,19 +67,19 @@ public class TimestampTimeZoneSet extends Action {
         }
 
         // Create empty list to work with.
-        List<String> available = new ArrayList<String>();
+        final List<String> available = new ArrayList<String>();
 
         if (TimestampTimeZoneSet.isDouble(value)) {
             // Offset filter in hours.
-            int offset = (int) (Double.parseDouble(value) * 60 * 60 * 1000);
+            final int offset = (int) (Double.parseDouble(value) * 60 * 60 * 1000);
             available.clear();
             available.addAll(Arrays.asList(TimeZone.getAvailableIDs(offset)));
 
         } else if (value.matches("\\d{1,2}:\\d{1,2}")) {
             // Offset filter in HH:mm format.
-            Matcher m = Pattern.compile("(\\d{1,2}):(\\d{1,2})").matcher(value);
+            final Matcher m = Pattern.compile("(\\d{1,2}):(\\d{1,2})").matcher(value);
             m.find();
-            int offset = ((Integer.parseInt(m.group(1)) * 60) + Integer.parseInt(m.group(2))) * 60 * 1000;
+            final int offset = ((Integer.parseInt(m.group(1)) * 60) + Integer.parseInt(m.group(2))) * 60 * 1000;
             available.clear();
             available.addAll(Arrays.asList(TimeZone.getAvailableIDs(offset)));
 
@@ -96,9 +91,9 @@ public class TimestampTimeZoneSet extends Action {
                 available.addAll(Arrays.asList(TimeZone.getAvailableIDs()));
 
             // Reduce list with supplied filter.
-            Iterator<String> i = available.iterator();
+            final Iterator<String> i = available.iterator();
             while (i.hasNext()) {
-                String ID = i.next();
+                final String ID = i.next();
                 if (ID.equalsIgnoreCase(value)) {
                     available.clear();
                     available.add(ID);
@@ -134,7 +129,7 @@ public class TimestampTimeZoneSet extends Action {
 
         }
 
-        TimeZone timezone = TimeZone.getTimeZone(available.get(0));
+        final TimeZone timezone = TimeZone.getTimeZone(available.get(0));
 
         // Update timestamp and save to file
         timestamp.setTimeZone(timezone);
@@ -147,12 +142,12 @@ public class TimestampTimeZoneSet extends Action {
         return true;
     }
 
-    private static boolean isDouble(String s) {
+    private static boolean isDouble(final String s) {
         try {
             Double.parseDouble(s);
             return true;
 
-        } catch(Exception e) {
+        } catch(final Exception e) {
             return false;
 
         }

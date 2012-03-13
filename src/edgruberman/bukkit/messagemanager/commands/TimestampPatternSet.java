@@ -16,11 +16,6 @@ final class TimestampPatternSet extends Action {
     }
 
     @Override
-    public boolean matches(Context context) {
-        return super.matchesBreadcrumb(context);
-    }
-
-    @Override
     public boolean perform(final Context context) {
         // Example: /<command> pattern set[ <Player>] <Pattern>
         if (context.arguments.size() < 3) return false;
@@ -40,7 +35,7 @@ final class TimestampPatternSet extends Action {
             return true;
         }
 
-        String pattern = (context.arguments.size() >= 4 ? context.arguments.get(3) : context.arguments.get(2));
+        final String pattern = (context.arguments.size() >= 4 ? context.arguments.get(3) : context.arguments.get(2));
         if (pattern == null) {
             Main.messageManager.respond(context.sender, "Unable to determine pattern", MessageLevel.SEVERE, false);
             return false;
@@ -63,7 +58,7 @@ final class TimestampPatternSet extends Action {
             timestamp.setPattern(pattern);
             Main.saveRecipient(targetName, timestamp, useTimestamp);
 
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             Main.messageManager.respond(context.sender, "Unable to update " + targetName + "'s timestamp pattern with " + pattern, MessageLevel.STATUS, false);
             return true;
 

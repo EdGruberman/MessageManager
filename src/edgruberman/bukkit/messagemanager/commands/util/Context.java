@@ -2,11 +2,9 @@ package edgruberman.bukkit.messagemanager.commands.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.bukkit.command.CommandSender;
-
-import edgruberman.bukkit.messagemanager.Main;
-import edgruberman.bukkit.messagemanager.MessageLevel;
 
 /**
  * Individual command execution request
@@ -30,9 +28,9 @@ public class Context {
         this.handler = handler;
         this.sender = sender;
         this.label = label;
-        this.arguments = parseArguments(args);
+        this.arguments = Context.parseArguments(args);
         this.action = this.parseAction();
-        Main.messageManager.log("Command Context for " + label + "; Action: " + this.action.getNamePath() + "; Arguments: " + this.arguments, MessageLevel.FINEST);
+        this.handler.command.getPlugin().getLogger().log(Level.FINEST, "Command issued: " + this.toString());
     }
 
     /**
@@ -41,11 +39,10 @@ public class Context {
      * @return the most specific matching action or the default action if none applies
      */
     private Action parseAction() {
-        Action action = this.parseAction(this.handler.actions);
+        final Action action = this.parseAction(this.handler.actions);
         if (action != null) return action;
 
-        // Return default action (first action registered)
-        return this.handler.actions.get(0);
+        return this.handler.getDefaultAction();
     }
 
     /**
@@ -55,15 +52,20 @@ public class Context {
      * @return action that matches this context; null if no actions match
      */
     private Action parseAction(final List<Action> actions) {
-        for (Action parent : actions)
+        for (final Action parent : actions)
             if (parent.matches(this)) {
-                Action child = this.parseAction(parent.children);
+                final Action child = this.parseAction(parent.children);
                 if (child != null) return child;
 
                 return parent;
             }
 
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return "Context [handler=" + this.handler + ", sender=" + this.sender + ", label=" + this.label + ", arguments=" + this.arguments + ", action=" + this.action + "]";
     }
 
     /**
@@ -75,11 +77,11 @@ public class Context {
      * TODO use \ for escaping double quote characters
      * TODO make this less messy
      */
-    private List<String> parseArguments(String[] args) {
-        List<String> arguments = new ArrayList<String>();
+    private static List<String> parseArguments(final String[] args) {
+        final List<String> arguments = new ArrayList<String>();
 
         String previous = null;
-        for (String arg : args) {
+        for (final String arg : args) {
             if (previous != null) {
                 if (arg.endsWith("\"")) {
                     arguments.add(Context.stripDoubleQuotes(previous + " " + arg));

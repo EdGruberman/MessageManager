@@ -1,8 +1,10 @@
 package edgruberman.bukkit.messagemanager;
 
 import java.util.TimeZone;
+import java.util.logging.Level;
 
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import edgruberman.bukkit.messagemanager.channels.Dispatcher;
@@ -17,8 +19,10 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onLoad() {
+        Main.plugin = this;
+
         Main.configurationFile = new ConfigurationFile(this);
-        Main.recipients = new ConfigurationFile(this, "recipients.yml", null, 60);
+        Main.recipients = new ConfigurationFile(this, "recipients.yml", null, null, 60);
 
         Main.messageManager = new MessageManager(this);
     }
@@ -75,6 +79,11 @@ public class Main extends JavaPlugin {
         Main.recipients.getConfig().set(player + ".useTimestamp", useTimestamp);
 
         Main.recipients.save(false);
+    }
+
+    private static Plugin plugin;
+    public static void log(final Level level, final String message) {
+        Main.plugin.getLogger().log(level, message);
     }
 
 }

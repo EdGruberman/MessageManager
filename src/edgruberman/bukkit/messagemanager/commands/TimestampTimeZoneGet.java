@@ -15,11 +15,6 @@ public class TimestampTimeZoneGet extends Action {
     }
 
     @Override
-    public boolean matches(Context context) {
-        return super.matchesBreadcrumb(context);
-    }
-
-    @Override
     public boolean perform(final Context context) {
         // Example: /<command> timezone[ get][ <Player>]
         int position = 2;
@@ -41,7 +36,7 @@ public class TimestampTimeZoneGet extends Action {
             return true;
         }
 
-        edgruberman.bukkit.messagemanager.channels.Timestamp timestamp = Main.timestampFor(targetName);
+        final edgruberman.bukkit.messagemanager.channels.Timestamp timestamp = Main.timestampFor(targetName);
         Main.messageManager.respond(context.sender, targetName + "'s Timestamp " + TimestampTimeZoneGet.message(timestamp), MessageLevel.STATUS, false);
 
         return true;

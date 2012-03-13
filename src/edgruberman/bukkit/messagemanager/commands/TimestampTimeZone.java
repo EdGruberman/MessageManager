@@ -15,11 +15,6 @@ public class TimestampTimeZone extends Action {
     }
 
     @Override
-    public boolean matches(Context context) {
-        return super.matchesBreadcrumb(context);
-    }
-
-    @Override
     public boolean perform(final Context context) {
         // Example: /<command> timezone([ get][ <Player>]| set[ <Player>] <TimeZone>)
         return this.children.get(0).perform(context);

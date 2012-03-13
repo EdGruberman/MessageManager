@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -12,7 +13,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import edgruberman.bukkit.messagemanager.Main;
-import edgruberman.bukkit.messagemanager.MessageLevel;
 
 public class Channel {
 
@@ -40,8 +40,8 @@ public class Channel {
     }
 
     public boolean addMember(final Recipient member) {
-        boolean added = this.members.add(member);
-        if (added) Main.messageManager.log(this.toString() + " Added member " + member.getPlayer().getName(), MessageLevel.FINER);
+        final boolean added = this.members.add(member);
+        if (added) Main.log(Level.FINER, this.toString() + " Added member " + member.getPlayer().getName());
         return added;
     }
 
@@ -50,8 +50,8 @@ public class Channel {
     }
 
     public boolean removeMember(final Recipient member) {
-        boolean removed = this.members.remove(member);
-        if (removed) Main.messageManager.log(this.toString() + " Removed member " + member.getPlayer().getName(), MessageLevel.FINER);
+        final boolean removed = this.members.remove(member);
+        if (removed) Main.log(Level.FINER, this.toString() + " Removed member " + member.getPlayer().getName());
         return removed;
     }
 
@@ -60,8 +60,8 @@ public class Channel {
     }
 
     public static void disconnect(final Recipient member) {
-        for (Map<String, Channel> types : Channel.instances.values())
-            for (Channel channel : types.values())
+        for (final Map<String, Channel> types : Channel.instances.values())
+            for (final Channel channel : types.values())
                 channel.removeMember(member);
 
         Recipient.disposeInstance(member);
@@ -71,7 +71,7 @@ public class Channel {
         this.members.clear();
     }
 
-    public boolean isMember(Player player) {
+    public boolean isMember(final Player player) {
         return this.members.contains(Recipient.getInstance(player));
     }
 
@@ -83,7 +83,7 @@ public class Channel {
         if (!Channel.exists(this))
             throw new IllegalArgumentException("Channel reference no longer valid.");
 
-        for (Recipient recipient : this.members)
+        for (final Recipient recipient : this.members)
             recipient.send(message, isTimestamped);
     }
 
@@ -91,7 +91,7 @@ public class Channel {
         if (!Channel.exists(type, name))
             switch(type) {
             case PLAYER:
-                Player player = Bukkit.getServer().getPlayerExact(name);
+                final Player player = Bukkit.getServer().getPlayerExact(name);
                 if (player == null) return null;
 
                 new PlayerChannel(player);
@@ -102,14 +102,14 @@ public class Channel {
                 break;
 
             case WORLD:
-                World world = Bukkit.getServer().getWorld(name);
+                final World world = Bukkit.getServer().getWorld(name);
                 if (world == null) return null;
 
                 new WorldChannel(world);
                 break;
 
             case LOG:
-                Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin(name);
+                final Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin(name);
                 if (plugin == null) return null;
 
                 new LogChannel(plugin);
@@ -242,7 +242,7 @@ public class Channel {
         if (other == null) return false;
 
         if (!(other instanceof Channel)) return false;
-        Channel that = (Channel) other;
+        final Channel that = (Channel) other;
         if (!that.canEqual(this)) return false;
 
         if (this.type != that.type) return false;
