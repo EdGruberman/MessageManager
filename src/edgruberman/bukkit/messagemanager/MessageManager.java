@@ -94,7 +94,7 @@ public final class MessageManager {
     }
 
     /**
-     * Strips the given message of all MessageManagercolor codes.
+     * Strips the given message of all MessageManager color codes.
      *
      * @param input string to strip of color
      * @return copy of the input string, without any color codes
@@ -180,7 +180,7 @@ public final class MessageManager {
     }
 
     public String format(final Channel channel, final MessageLevel level, final String message) {
-        return this.settings.color.get(level).get(channel.type).toString()
+        return this.getColor(level, channel.type).toString()
             + String.format(this.settings.format.get(channel.type)
                 , message
                 , channel.name
@@ -224,7 +224,7 @@ public final class MessageManager {
         if (!this.isLevel(type, level)) return;
 
         final Channel channel = Channel.getInstance(type, name);
-        final String formatted = MessageManager.colorize(message, this.settings.color.get(level).get(channel.type));
+        final String formatted = MessageManager.colorize(message, this.getColor(level, channel.type));
         for (String line : formatted.split("\n")) {
             line = this.format(channel, level, line);
 
