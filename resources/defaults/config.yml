@@ -90,3 +90,5 @@ color:
         WORLD: BLACK
         CUSTOM: BLACK
         LOG: BLACK
+logLevel: RIGHTS
+version: @VERSION@

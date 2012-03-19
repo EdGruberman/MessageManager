@@ -10,21 +10,34 @@ import org.bukkit.plugin.java.JavaPlugin;
 import edgruberman.bukkit.messagemanager.channels.Dispatcher;
 import edgruberman.bukkit.messagemanager.channels.Timestamp;
 
-public class Main extends JavaPlugin {
+public final class Main extends JavaPlugin {
 
     public static MessageManager messageManager;
 
     static ConfigurationFile recipients;
     static ConfigurationFile configurationFile;
 
+    final private static String MINIMUM_CONFIGURATION_VERSION = "5.1.0a0";
+    private final boolean firstEnable = true;
+
     @Override
     public void onLoad() {
         Main.plugin = this;
 
         Main.configurationFile = new ConfigurationFile(this);
+        Main.configurationFile.setMinVersion(Main.MINIMUM_CONFIGURATION_VERSION);
+        Main.configurationFile.load();
+        this.setLoggingLevel();
         Main.recipients = new ConfigurationFile(this, "recipients.yml", null, null, 60);
 
         Main.messageManager = new MessageManager(this);
+    }
+
+    private void setLoggingLevel() {
+        final String name = Main.configurationFile.getConfig().getString("logLevel", "INFO");
+        Level level = MessageLevel.parse(name);
+        if (level == null) level = Level.INFO;
+        this.getLogger().setLevel(level);
     }
 
     @Override
@@ -43,7 +56,7 @@ public class Main extends JavaPlugin {
     }
 
     public void loadConfiguration() {
-        Main.configurationFile.load();
+        if (!this.firstEnable) Main.configurationFile.load();
         Main.recipients.load();
     }
 

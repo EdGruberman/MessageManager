@@ -83,6 +83,8 @@ public class Channel {
         if (!Channel.exists(this))
             throw new IllegalArgumentException("Channel reference no longer valid.");
 
+        // TODO add logging here
+
         for (final Recipient recipient : this.members)
             recipient.send(message, isTimestamped);
     }

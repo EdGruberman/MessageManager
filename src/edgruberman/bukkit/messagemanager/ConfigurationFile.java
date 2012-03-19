@@ -52,7 +52,7 @@ public final class ConfigurationFile {
     private final String defaults;
     private int maxSaveFrequency;
     private FileVersion minVersion;
-    private FileConfiguration config = null;
+    private YamlConfiguration config = null;
     private Long lastSaveAttempt = null;
     private Integer taskSave = null;
 
@@ -154,7 +154,7 @@ public final class ConfigurationFile {
 
             // Backup existing file
             String backupName = this.file.getName().substring(0, this.file.getName().lastIndexOf("."));
-            backupName += "_" + new SimpleDateFormat("yyyyMMdd'T'HHmmZ").format(new Date()) + ".yml";
+            backupName += " backup - version " + this.getVersion().toString() + " - " + new SimpleDateFormat("yyyyMMdd'T'HHmm").format(new Date()) + ".yml";
             final File backup = new File(this.file.getParentFile(), backupName);
             this.owner.getLogger().log(Level.WARNING, "Existing configuration file \"" + this.file.getPath() + "\" with version \"" + this.getVersion() + "\" is out of date; Required minimum version is \"" + this.minVersion + "\"; Backing up existing file to \"" + backup.getPath() + "\"");
             this.file.renameTo(backup);
@@ -175,11 +175,11 @@ public final class ConfigurationFile {
         }
 
         // No file, no defaults, reset to empty configuration
-        this.config = new YamlConfiguration();
+        this.clear();
         return this.config;
     }
 
-    public FileConfiguration getConfig() {
+    public YamlConfiguration getConfig() {
         if (this.config == null) this.load();
         return this.config;
     }
@@ -243,6 +243,10 @@ public final class ConfigurationFile {
         this.taskSave = null;
 
         this.owner.getLogger().log(Level.FINEST, "Saved configuration file: " + this.file);
+    }
+
+    public void clear() {
+        this.config = new YamlConfiguration();
     }
 
     /**

@@ -13,13 +13,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import edgruberman.bukkit.messagemanager.channels.Channel;
-import edgruberman.bukkit.messagemanager.channels.CustomChannel;
 import edgruberman.bukkit.messagemanager.channels.LogChannel;
-import edgruberman.bukkit.messagemanager.channels.PlayerChannel;
 import edgruberman.bukkit.messagemanager.channels.Recipient;
-import edgruberman.bukkit.messagemanager.channels.ServerChannel;
 import edgruberman.bukkit.messagemanager.channels.Timestamp;
-import edgruberman.bukkit.messagemanager.channels.WorldChannel;
 
 /**
  * Centralized logging and player communication API.</br>
@@ -219,26 +215,22 @@ public final class MessageManager {
 
     public void send(final Channel.Type type, final String name, final String message, final MessageLevel level, final boolean useTimestamp, final Throwable e) {
         if (!Channel.exists(type, name))
-            throw new IllegalArgumentException(type.toString() + " channel" + (name != null ? " [" + name + "]" : "") + " does not exist.");
+            throw new IllegalArgumentException(type.toString() + " channel" + (name != null ? " [" + name + "]" : "") + " does not exist");
 
         if (!this.isLevel(type, level)) return;
 
         final Channel channel = Channel.getInstance(type, name);
-        final String formatted = MessageManager.colorize(message, this.getColor(level, channel.type));
-        for (String line : formatted.split("\n")) {
+        final String colored = MessageManager.colorize(message, this.getColor(level, channel.type));
+        for (String line : colored.split("\n")) {
             line = this.format(channel, level, line);
 
-            if (channel.type != Channel.Type.LOG)
-                this.owner.getLogger().log(level, String.format(this.settings.log.get(channel.type), line, channel.name));
-
-            switch(channel.type) {
-            case PLAYER: ((PlayerChannel) channel).send(line, useTimestamp); break;
-            case SERVER: ((ServerChannel) channel).send(line, useTimestamp); break;
-            case WORLD:  ((WorldChannel)  channel).send(line, useTimestamp); break;
-            case CUSTOM: ((CustomChannel) channel).send(line, useTimestamp); break;
-            case LOG:    ((LogChannel)    channel).send(line, useTimestamp, level, e); break;
-            default: break;
+            if (channel.type == Channel.Type.LOG) {
+                ((LogChannel) channel).send(line, useTimestamp, level, e);
+                continue;
             }
+
+            this.owner.getLogger().log(level, String.format(this.settings.log.get(channel.type), line, channel.name));
+            channel.send(line, useTimestamp);
         }
     }
 
@@ -459,7 +451,11 @@ public final class MessageManager {
         if (target instanceof Player) {
             this.send((Player) target, message, level, useTimestamp);
         } else {
-            this.owner.getLogger().log(level, message);
+            final String colored = MessageManager.colorize(message, this.getColor(level, Channel.Type.LOG));
+            for (String line : colored.split("\n")) {
+                line = this.format(Channel.getInstance(this.owner), level, line);
+                target.sendMessage(line);
+            }
         }
     }
 
