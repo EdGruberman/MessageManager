@@ -1,0 +1,70 @@
+PLAYER:
+    level:
+        channel: ALL
+        log: 'OFF'
+    format: '-> %1$s' # 1 = Message, 2 = Player Name
+    color:
+        SEVERE: RED
+        WARNING: YELLOW
+        NOTICE: LIGHT_PURPLE
+        INFO: WHITE
+        STATUS: GREEN
+        EVENT: GRAY
+        RIGHTS: BLUE
+        CONFIG: AQUA
+        FINE: BLACK
+        FINER: BLACK
+        FINEST: BLACK
+SERVER:
+    level:
+        channel: ALL
+        log: ALL
+    format: '%1$s' # 1 = Message, 2 = Server Name
+    color:
+        SEVERE: DARK_RED
+        WARNING: GOLD
+        NOTICE: DARK_PURPLE
+        INFO: WHITE
+        STATUS: DARK_GREEN
+        EVENT: DARK_GRAY
+        RIGHTS: DARK_BLUE
+        CONFIG: DARK_AQUA
+        FINE: BLACK
+        FINER: BLACK
+        FINEST: BLACK
+WORLD:
+    level:
+        channel: ALL
+        log: ALL
+    format: '[%2$s] %1$s' # 1 = Message, 2 = World Name
+    color:
+        SEVERE: DARK_RED
+        WARNING: GOLD
+        NOTICE: DARK_PURPLE
+        INFO: WHITE
+        STATUS: DARK_GREEN
+        EVENT: DARK_GRAY
+        RIGHTS: DARK_BLUE
+        CONFIG: DARK_AQUA
+        FINE: BLACK
+        FINER: BLACK
+        FINEST: BLACK
+CUSTOM:
+    level:
+        channel: ALL
+        log: 'OFF'
+    format: '[%2$s] %1$s' # 1 = Message, 2 = Channel Name
+    color:
+        SEVERE: DARK_RED
+        WARNING: GOLD
+        NOTICE: DARK_PURPLE
+        INFO: WHITE
+        STATUS: DARK_GREEN
+        EVENT: DARK_GRAY
+        RIGHTS: DARK_BLUE
+        CONFIG: DARK_AQUA
+        FINE: BLACK
+        FINER: BLACK
+        FINEST: BLACK
+log: '[%3$s] [%4$s] %2$s %1$s' # 1 = Message, 2 = Channel Description, 3 = Originating Plugin, 4 = Message Level
+version: @VERSION@

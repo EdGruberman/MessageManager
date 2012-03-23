@@ -14,9 +14,8 @@ final class MessageManagerReload extends Action {
 
     @Override
     public boolean perform(final Context context) {
-        ((Main) context.handler.command.getPlugin()).loadConfiguration();
-        // TODO reload all mm instances for all plugins?
-        Main.messageManager.respond(context.sender, "Configuration reloaded", MessageLevel.STATUS);
+        ((Main) context.handler.command.getPlugin()).reload();
+        Main.messageManager.send(context.sender, "Configuration reloaded", MessageLevel.STATUS, false);
         return true;
     }
 

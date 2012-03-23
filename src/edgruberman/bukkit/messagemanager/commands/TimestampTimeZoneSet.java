@@ -34,7 +34,7 @@ public class TimestampTimeZoneSet extends Action {
         OfflinePlayer target = Parser.parsePlayer(context, 2);
         if (target == null && context.sender instanceof OfflinePlayer) target = (OfflinePlayer) context.sender;
         if (target == null) {
-            Main.messageManager.respond(context.sender, "Unable to determine player", MessageLevel.SEVERE, false);
+            Main.messageManager.send(context.sender, "Unable to determine player", MessageLevel.SEVERE, false);
             return false;
         }
 
@@ -44,26 +44,14 @@ public class TimestampTimeZoneSet extends Action {
 
         // Verify requester has permission for player
         if (!Timestamp.isAllowed(context.sender, this.permission, targetName)) {
-            Main.messageManager.respond(context.sender, "You are not allowed to use the " + this.getNamePath() + " action of the " + context.label + " command for " + target.getName(), MessageLevel.RIGHTS, false);
+            Main.messageManager.send(context.sender, "You are not allowed to use the " + this.getNamePath() + " action of the " + context.label + " command for " + target.getName(), MessageLevel.RIGHTS, false);
             return true;
         }
 
-        edgruberman.bukkit.messagemanager.channels.Timestamp timestamp;
-        boolean useTimestamp;
         final String value = (context.arguments.size() >= 4 ? context.arguments.get(3) : context.arguments.get(2));
         if (value == null) {
-            Main.messageManager.respond(context.sender, "Unable to determine timezone", MessageLevel.SEVERE, false);
+            Main.messageManager.send(context.sender, "Unable to determine timezone", MessageLevel.SEVERE, false);
             return false;
-        }
-
-        if (target.getPlayer() != null) {
-            // Use recipient if online.
-            timestamp = Recipient.getInstance(target.getPlayer()).getTimestamp();
-            useTimestamp = Recipient.getInstance(target.getPlayer()).getUseTimestamp();
-        } else {
-            // Otherwise use configuration file.
-            timestamp = Main.timestampFor(targetName);
-            useTimestamp = Main.useTimestampFor(targetName);
         }
 
         // Create empty list to work with.
@@ -109,19 +97,19 @@ public class TimestampTimeZoneSet extends Action {
 
         // If TimeZone is still ambiguous, show possibilities, up to maximum count, and exit.
         if (available.size() == 0) {
-            Main.messageManager.respond(context.sender, "No TimeZones match", MessageLevel.SEVERE, false);
+            Main.messageManager.send(context.sender, "No TimeZones match", MessageLevel.SEVERE, false);
             return true;
 
         } else if (available.size() > 1) {
             for (int i = 0; (i <= (available.size() - 1)) && (i <= (TimestampTimeZoneSet.MAXIMUM_DISPLAY - 1)); i++)
-                Main.messageManager.respond(context.sender
+                Main.messageManager.send(context.sender
                         , available.get(i) + " (" + TimeZone.getTimeZone(available.get(i)).getDisplayName() + ")"
                         , MessageLevel.NOTICE
                         , false
                 );
 
             if (available.size() > TimestampTimeZoneSet.MAXIMUM_DISPLAY)
-                Main.messageManager.respond(context.sender
+                Main.messageManager.send(context.sender
                         , "Only first " + TimestampTimeZoneSet.MAXIMUM_DISPLAY + " of " + available.size() + " TimeZones displayed"
                         , MessageLevel.WARNING, false
                 );
@@ -132,13 +120,11 @@ public class TimestampTimeZoneSet extends Action {
         final TimeZone timezone = TimeZone.getTimeZone(available.get(0));
 
         // Update timestamp and save to file
-        timestamp.setTimeZone(timezone);
-        Main.saveRecipient(targetName, timestamp, useTimestamp);
+        final Recipient recipient = Timestamp.getRecipient(target);
+        recipient.getTimestamp().setTimeZone(timezone);
+        recipient.save();
 
-        // Respond with verification.
-        timestamp = Main.timestampFor(targetName);
-        Main.messageManager.respond(context.sender, targetName + "'s Timestamp " + TimestampTimeZoneGet.message(timestamp), MessageLevel.STATUS, false);
-
+        Main.messageManager.send(context.sender, "Timestamp time zone for " + targetName + ": " + TimestampTimeZoneGet.message(recipient.load()), MessageLevel.STATUS, false);
         return true;
     }
 

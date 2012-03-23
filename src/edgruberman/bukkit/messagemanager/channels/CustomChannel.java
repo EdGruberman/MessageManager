@@ -1,27 +1,28 @@
 package edgruberman.bukkit.messagemanager.channels;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.bukkit.plugin.Plugin;
+
 
 public class CustomChannel extends Channel {
-    
-    CustomChannel(final String name) {
+
+    static final Map<Plugin, ChannelConfiguration> configuration = new HashMap<Plugin, ChannelConfiguration>();
+
+    public CustomChannel(final String name) {
         super(Channel.Type.CUSTOM, name);
     }
-    
+
+
     @Override
-    public boolean equals(final Object other) {
-        if (this == other) return true;
-        if (other == null) return false;
-        
-        if (!(other instanceof CustomChannel)) return false;
-        CustomChannel that = (CustomChannel) other;
-        if (!that.canEqual(this)) return false;
-        if (!super.equals(that)) return false;
-        
-        return true;
+    public ChannelConfiguration getConfiguration(final Plugin owner) {
+        return CustomChannel.configuration.get(owner);
     }
-    
+
     @Override
-    public boolean canEqual(final Object other) {
-        return (other instanceof CustomChannel);
+    public ChannelConfiguration setConfiguration(final Plugin owner, final ChannelConfiguration configuration) {
+        return CustomChannel.configuration.put(owner, configuration);
     }
+
 }

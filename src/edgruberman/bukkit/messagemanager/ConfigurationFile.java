@@ -63,7 +63,7 @@ public final class ConfigurationFile {
      *
      * @param owner plugin that owns this configuration file
      */
-    ConfigurationFile(final Plugin owner) {
+    public ConfigurationFile(final Plugin owner) {
         this(owner, (String) null);
     }
 
@@ -75,7 +75,7 @@ public final class ConfigurationFile {
      * @param owner plugin that owns this configuration file
      * @param maxSaveFrequency shortest duration in seconds each save can occur
      */
-    ConfigurationFile(final Plugin owner, final int maxSaveFrequency) {
+    public ConfigurationFile(final Plugin owner, final int maxSaveFrequency) {
         this(owner, (String) null, (String) null, (String) null, maxSaveFrequency);
     }
 
@@ -87,7 +87,7 @@ public final class ConfigurationFile {
      * @param owner plugin that owns this configuration file
      * @param file name of file in the default data directory
      */
-    ConfigurationFile(final Plugin owner, final String file) {
+    public ConfigurationFile(final Plugin owner, final String file) {
         this(owner, file, (String) null);
     }
 
@@ -99,7 +99,7 @@ public final class ConfigurationFile {
      * @param file name of file in the default data directory
      * @param defaults path to default configuration file supplied in JAR
      */
-    ConfigurationFile(final Plugin owner, final String file, final String defaults) {
+    public ConfigurationFile(final Plugin owner, final String file, final String defaults) {
         this(owner, file, defaults, (String) null, (Integer) null);
     }
 
@@ -113,7 +113,7 @@ public final class ConfigurationFile {
      * @param minVersion minimum required version that if not met the defaults will override with
      * @param maxSaveFrequency shortest duration in seconds each save can occur
      */
-    ConfigurationFile(final Plugin owner, final String file, final String defaults, final String minVersion, final Integer maxSaveFrequency) {
+    public ConfigurationFile(final Plugin owner, final String file, final String defaults, final String minVersion, final Integer maxSaveFrequency) {
         this.owner = owner;
 
         this.file = new File(this.owner.getDataFolder(), (file != null ? file : ConfigurationFile.DEFAULT_FILE));
@@ -122,6 +122,9 @@ public final class ConfigurationFile {
         this.maxSaveFrequency = (maxSaveFrequency != null ? maxSaveFrequency : ConfigurationFile.DEFAULT_SAVE);
     }
 
+    public File getFile() {
+        return this.file;
+    }
 
     public int getMaxSaveFrequency() {
         return this.maxSaveFrequency;
@@ -154,7 +157,7 @@ public final class ConfigurationFile {
 
             // Backup existing file
             String backupName = this.file.getName().substring(0, this.file.getName().lastIndexOf("."));
-            backupName += " backup - version " + this.getVersion().toString() + " - " + new SimpleDateFormat("yyyyMMdd'T'HHmm").format(new Date()) + ".yml";
+            backupName += " - Backup version " + this.getVersion().toString() + " - " + new SimpleDateFormat("yyyyMMdd'T'HHmm").format(new Date()) + ".yml";
             final File backup = new File(this.file.getParentFile(), backupName);
             this.owner.getLogger().log(Level.WARNING, "Existing configuration file \"" + this.file.getPath() + "\" with version \"" + this.getVersion() + "\" is out of date; Required minimum version is \"" + this.minVersion + "\"; Backing up existing file to \"" + backup.getPath() + "\"");
             this.file.renameTo(backup);

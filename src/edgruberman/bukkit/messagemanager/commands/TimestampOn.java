@@ -22,7 +22,7 @@ class TimestampOn extends Action {
         OfflinePlayer target = Parser.parsePlayer(context, 1);
         if (target == null && context.sender instanceof OfflinePlayer) target = (OfflinePlayer) context.sender;
         if (target == null) {
-            Main.messageManager.respond(context.sender, "Unable to determine player", MessageLevel.SEVERE, false);
+            Main.messageManager.send(context.sender, "Unable to determine player", MessageLevel.SEVERE, false);
             return false;
         }
 
@@ -30,20 +30,14 @@ class TimestampOn extends Action {
         if (target.getPlayer() != null) targetName = target.getPlayer().getName();
 
         if (!Timestamp.isAllowed(context.sender, this.permission, targetName)) {
-            Main.messageManager.respond(context.sender, "You are not allowed to use the " + this.getNamePath() + " action for " + target.getName(), MessageLevel.RIGHTS, false);
+            Main.messageManager.send(context.sender, "You are not allowed to use the " + this.getNamePath() + " action for " + target.getName(), MessageLevel.RIGHTS, false);
             return true;
         }
 
-        // Reset recipient file configuration
-        Main.saveRecipient(targetName, Main.timestampFor(targetName), true);
-
-        // Update recipient if online
-        if (target.getPlayer() != null)
-            Recipient.getInstance(target.getPlayer()).setUseTimestamp(true);
-
-        // Respond with verification
-        Main.messageManager.respond(context.sender, targetName + "'s Timestamp has been toggled on", MessageLevel.STATUS, false);
-
+        final Recipient recipient = Timestamp.getRecipient(target);
+        recipient.setFormat(Recipient.DEFAULT_FORMAT);
+        recipient.save();
+        Main.messageManager.send(context.sender, "Timestamp format for " + targetName + " has been set to: " + TimestampFormatGet.message(recipient.load()), MessageLevel.STATUS, false);
         return true;
     }
 

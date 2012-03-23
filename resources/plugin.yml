@@ -96,7 +96,7 @@ permissions:
         children:
             messagemanager.timestamp: true
     messagemanager.timestamp.timezone.set:
-        description: Can use set timezone action of timestamp command for sel
+        description: Can use set timezone action of timestamp command for self
         default: false
         children:
             messagemanager.timestamp: true

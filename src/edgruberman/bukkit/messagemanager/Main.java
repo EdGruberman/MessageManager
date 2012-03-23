@@ -1,49 +1,43 @@
 package edgruberman.bukkit.messagemanager;
 
 import java.util.TimeZone;
+import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import edgruberman.bukkit.messagemanager.channels.Dispatcher;
-import edgruberman.bukkit.messagemanager.channels.Timestamp;
+import edgruberman.bukkit.messagemanager.channels.Recipient;
 
 public final class Main extends JavaPlugin {
 
+    public static Logger logger;
     public static MessageManager messageManager;
+    public static ConfigurationFile configurationFile;
 
-    static ConfigurationFile recipients;
-    static ConfigurationFile configurationFile;
-
-    final private static String MINIMUM_CONFIGURATION_VERSION = "5.1.0a0";
-    private final boolean firstEnable = true;
+    public static final String MINIMUM_CONFIGURATION_VERSION = "6.0.0a38";
+    public static final String MINIMUM_RECIPIENTS_VERSION = "6.0.0a0";
+    public static final String MINIMUM_MESSAGE_MANAGER_VERSION = "6.0.0a0";
 
     @Override
-    public void onLoad() {
-        Main.plugin = this;
+    public void onEnable() {
+        Main.logger = this.getLogger();
 
         Main.configurationFile = new ConfigurationFile(this);
         Main.configurationFile.setMinVersion(Main.MINIMUM_CONFIGURATION_VERSION);
         Main.configurationFile.load();
         this.setLoggingLevel();
-        Main.recipients = new ConfigurationFile(this, "recipients.yml", null, null, 60);
+        this.configureRecipientDefaults();
 
+        // TODO move this into Recipient and organize load/reload/onEnable
+        Recipient.configurationFile = new ConfigurationFile(this, "recipients.yml", null, null, 60);
+        Recipient.configurationFile.setMinVersion(Main.MINIMUM_RECIPIENTS_VERSION);
+        Recipient.configurationFile.load();
+
+        MessageManager.dispatcher = new Dispatcher(this);
         Main.messageManager = new MessageManager(this);
-    }
-
-    private void setLoggingLevel() {
-        final String name = Main.configurationFile.getConfig().getString("logLevel", "INFO");
-        Level level = MessageLevel.parse(name);
-        if (level == null) level = Level.INFO;
-        this.getLogger().setLevel(level);
-    }
-
-    @Override
-    public void onEnable() {
-        this.loadConfiguration();
-        new Dispatcher(this);
 
         new edgruberman.bukkit.messagemanager.commands.MessageManager(this);
         new edgruberman.bukkit.messagemanager.commands.Timestamp(this);
@@ -52,51 +46,66 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (Main.recipients.isSaveQueued()) Main.recipients.save();
+        if (Recipient.configurationFile.isSaveQueued()) Recipient.configurationFile.save();
+        for (final MessageManager instance : MessageManager.instances.values()) instance.disable();
+        MessageManager.dispatcher = null;
     }
 
-    public void loadConfiguration() {
-        if (!this.firstEnable) Main.configurationFile.load();
-        Main.recipients.load();
+    // Custom reload to avoid losing references for other plugins' MessageManager instances
+    public void reload() {
+        Main.configurationFile.load();
+        this.setLoggingLevel();
+        this.configureRecipientDefaults();
+
+        Main.messageManager.enable();
+        for (final MessageManager instance : MessageManager.instances.values())
+            if (instance != Main.messageManager)
+                instance.enable();
+
+        Recipient.configurationFile.load();
+        for (final Recipient recipient : MessageManager.dispatcher.getRecipients()) recipient.load();
     }
 
-    public static boolean useTimestampFor(final String player) {
-        return Main.recipients.getConfig().getBoolean(player + ".useTimestamp", Settings.DEFAULT_MESSAGE_USE_TIMESTAMP);
-    }
+    private void configureRecipientDefaults() {
+        final ConfigurationSection main = Main.configurationFile.getConfig();
+        if (!main.isSet("timestamp")) return;
 
-    public static Timestamp timestampFor(final String player) {
-        final Timestamp timestamp = new Timestamp(Main.messageManager.getSettings().timestamp.getPattern()
-                , Main.messageManager.getSettings().timestamp.getFormat()
-                , Main.messageManager.getSettings().timestamp.getTimeZone()
-        );
+        final ConfigurationSection section = main.getConfigurationSection("timestamp");
 
-        final ConfigurationSection recipient = Main.recipients.getConfig().getConfigurationSection(player);
-        if (recipient == null) return timestamp;
-
-        timestamp.setFormat(recipient.getString("timestamp.format", timestamp.getFormat()));
-        timestamp.setPattern(recipient.getString("timestamp.pattern", timestamp.getPattern()));
-        timestamp.setTimeZone(TimeZone.getTimeZone(recipient.getString("timestamp.timezone", timestamp.getTimeZone().getID())));
-
-        return timestamp;
-    }
-
-    public static void saveRecipient(final String player, final Timestamp timestamp, final Boolean useTimestamp) {
-        if (timestamp == null) {
-            Main.recipients.getConfig().set(player + ".timestamp", null);
-        } else {
-            Main.recipients.getConfig().set(player + ".timestamp.pattern", timestamp.getPattern());
-            Main.recipients.getConfig().set(player + ".timestamp.format", timestamp.getFormat());
-            Main.recipients.getConfig().set(player + ".timestamp.timezone", timestamp.getTimeZone().getID());
+        if (section.isSet("format")) {
+            final String format = section.getString("format");
+            if (format == null) {
+                Main.logger.log(Level.WARNING, "Unable to apply null format from " + Main.configurationFile.getFile().getPath() + "; timestamp.format");
+            } else {
+                Recipient.defaultFormat = format;
+            }
         }
 
-        Main.recipients.getConfig().set(player + ".useTimestamp", useTimestamp);
+        if (section.isSet("pattern")) {
+            final String pattern = section.getString("pattern");
+            if (pattern == null) {
+                Main.logger.log(Level.WARNING, "Unable to apply null pattern from " + Main.configurationFile.getFile().getPath() + "; timestamp.pattern");
+            } else {
+                Recipient.defaultPattern = pattern;
+            }
+        }
 
-        Main.recipients.save(false);
+        if (section.isSet("timeZone")) {
+            Recipient.defaultTimeZone = TimeZone.getTimeZone(section.getString("timeZone"));
+        }
     }
 
-    private static Plugin plugin;
-    public static void log(final Level level, final String message) {
-        Main.plugin.getLogger().log(level, message);
+    private void setLoggingLevel() {
+        final String name = Main.configurationFile.getConfig().getString("logLevel", "INFO");
+        Level level = MessageLevel.parse(name);
+        if (level == null) level = Level.INFO;
+
+        // Only set the parent handler lower if necessary, otherwise leave it alone for other configurations that have set it
+        for (final Handler h : this.getLogger().getParent().getHandlers())
+            if (h.getLevel().intValue() > level.intValue()) h.setLevel(level);
+
+        this.getLogger().setLevel(level);
+        this.getLogger().log(Level.CONFIG, "Logging level set to: " + this.getLogger().getLevel());
     }
 
 }

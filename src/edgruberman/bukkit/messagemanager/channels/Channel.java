@@ -1,263 +1,120 @@
 package edgruberman.bukkit.messagemanager.channels;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Server;
-import org.bukkit.World;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import edgruberman.bukkit.messagemanager.Main;
+import edgruberman.bukkit.messagemanager.MessageLevel;
+import edgruberman.bukkit.messagemanager.MessageManager;
 
-public class Channel {
+/**
+ * Recipient Collection
+ */
+public abstract class Channel {
 
-    public static Map<Channel.Type, Map<String, Channel>> instances = new HashMap<Channel.Type, Map<String, Channel>>();
+    public static ChannelConfiguration getChannelConfiguration(final Channel.Type type, final Plugin owner) {
+        switch(type) {
+        case SERVER: return ServerChannel.configuration.get(owner);
+        case PLAYER: return PlayerChannel.configuration.get(owner);
+        case WORLD: return WorldChannel.configuration.get(owner);
+        case CUSTOM: return CustomChannel.configuration.get(owner);
+        }
+
+        return null;
+    }
+
+    // TODO determine how to reference a static class dynamically based on an enum value
+    public static ChannelConfiguration setChannelConfiguration(final Channel.Type type, final Plugin owner, final ChannelConfiguration configuration) {
+        switch(type) {
+        case SERVER: return ServerChannel.configuration.put(owner, configuration);
+        case PLAYER: return PlayerChannel.configuration.put(owner, configuration);
+        case WORLD: return WorldChannel.configuration.put(owner, configuration);
+        case CUSTOM: return CustomChannel.configuration.put(owner, configuration);
+        }
+
+        return null;
+    }
 
     public String name;
     public Type type;
+
     protected Set<Recipient> members = new HashSet<Recipient>();
 
-    protected Channel(final Type type, final String name) {
-        if (Channel.exists(type, name))
-            throw new IllegalArgumentException(type.toString() + " channel [" + name + "] already exists.");
-
+    Channel(final Type type, final String name) {
         this.name = name;
         this.type = type;
-
-        if (!Channel.instances.containsKey(this.type))
-            Channel.instances.put(this.type, new HashMap<String, Channel>());
-
-        Channel.instances.get(this.type).put(this.name, this);
     }
 
-    public boolean addMember(final Player member) {
-        return this.addMember(Recipient.getInstance(member));
+    public abstract ChannelConfiguration getConfiguration(final Plugin owner);
+    public abstract ChannelConfiguration setConfiguration(final Plugin owner, final ChannelConfiguration configuration);
+
+    public boolean add(final CommandSender member) {
+        return this.add(MessageManager.getDispatcher().getRecipient(member));
     }
 
-    public boolean addMember(final Recipient member) {
-        final boolean added = this.members.add(member);
-        if (added) Main.log(Level.FINER, this.toString() + " Added member " + member.getPlayer().getName());
-        return added;
+    public Set<Recipient> getMembers() {
+        return Collections.unmodifiableSet(this.members);
     }
 
-    public boolean removeMember(final Player member) {
-        return this.removeMember(Recipient.getInstance(member));
+    boolean add(final Recipient member) {
+        if (!this.members.add(member)) return false;
+
+        member.memberships.add(this);
+        Main.logger.log(Level.FINER, "Added member to " + this.toString() + ": " + member.getTarget().getName());
+        return true;
     }
 
-    public boolean removeMember(final Recipient member) {
-        final boolean removed = this.members.remove(member);
-        if (removed) Main.log(Level.FINER, this.toString() + " Removed member " + member.getPlayer().getName());
-        return removed;
+    public boolean remove(final CommandSender member) {
+        return this.remove(MessageManager.getDispatcher().getRecipient(member));
     }
 
-    public static void disconnect(final Player player) {
-        Channel.disconnect(Recipient.getInstance(player));
+    boolean remove(final Recipient member) {
+        if (!this.members.remove(member)) return false;
+
+        member.memberships.remove(this);
+        Main.logger.log(Level.FINER, "Removed member from " + this.toString() + ": " + member.getTarget().getName());
+        return true;
     }
 
-    public static void disconnect(final Recipient member) {
-        for (final Map<String, Channel> types : Channel.instances.values())
-            for (final Channel channel : types.values())
-                channel.removeMember(member);
-
-        Recipient.disposeInstance(member);
-    }
-
-    public void resetMembers() {
+    public void clear() {
+        for (final Recipient member : this.members) member.memberships.remove(this);
         this.members.clear();
     }
 
     public boolean isMember(final Player player) {
-        return this.members.contains(Recipient.getInstance(player));
+        return this.members.contains(MessageManager.getDispatcher().getRecipient(player));
     }
 
-    public void send(final String message) {
-        this.send(message, Main.messageManager.useTimestampDefault);
+    public boolean isSendable(final Plugin owner, final MessageLevel level) {
+        return level.intValue() >= this.getConfiguration(owner).levelChannel.intValue();
     }
 
-    public void send(final String message, final boolean isTimestamped) {
-        if (!Channel.exists(this))
-            throw new IllegalArgumentException("Channel reference no longer valid.");
-
-        // TODO add logging here
-
-        for (final Recipient recipient : this.members)
-            recipient.send(message, isTimestamped);
+    public String format(final Plugin owner, String message, final MessageLevel level) {
+        message = String.format(this.getConfiguration(owner).format, message, this.name);
+        return MessageManager.colorize(this.getConfiguration(owner).getColor(level), message);
     }
 
-    public static Channel getInstance(final Channel.Type type, final String name) {
-        if (!Channel.exists(type, name))
-            switch(type) {
-            case PLAYER:
-                final Player player = Bukkit.getServer().getPlayerExact(name);
-                if (player == null) return null;
+    public String send(final Plugin owner, String message, final MessageLevel level, final boolean applyTimestamp) {
+        if (!this.isSendable(owner, level)) return null;
 
-                new PlayerChannel(player);
-                break;
-
-            case SERVER:
-                new ServerChannel(Bukkit.getServer());
-                break;
-
-            case WORLD:
-                final World world = Bukkit.getServer().getWorld(name);
-                if (world == null) return null;
-
-                new WorldChannel(world);
-                break;
-
-            case LOG:
-                final Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin(name);
-                if (plugin == null) return null;
-
-                new LogChannel(plugin);
-                break;
-
-            case CUSTOM:
-                new CustomChannel(name);
-                break;
-            }
-
-        return Channel.instances.get(type).get(name);
-    }
-
-    public static PlayerChannel getInstance(final Player player) {
-        if (!Channel.exists(player))
-            new PlayerChannel(player);
-
-        return (PlayerChannel) Channel.getInstance(Channel.Type.PLAYER, player.getName());
-    }
-
-    public static ServerChannel getInstance(final Server server) {
-        if (!Channel.exists(server))
-            new ServerChannel(server);
-
-        return (ServerChannel) Channel.getInstance(Channel.Type.SERVER, server.getName());
-    }
-
-    public static WorldChannel getInstance(final World world) {
-        if (!Channel.exists(world))
-            new WorldChannel(world);
-
-        return (WorldChannel) Channel.getInstance(Channel.Type.WORLD, world.getName());
-    }
-
-    public static LogChannel getInstance(final Plugin plugin) {
-        if (!Channel.exists(plugin))
-            new LogChannel(plugin);
-
-        return (LogChannel) Channel.getInstance(Channel.Type.LOG, plugin.getDescription().getName());
-    }
-
-    public static CustomChannel getInstance(final String name) {
-        if (!Channel.exists(name))
-            new CustomChannel(name);
-
-        return (CustomChannel) Channel.getInstance(Channel.Type.CUSTOM, name);
-    }
-
-    public static boolean exists(final Channel.Type type, final String name) {
-        if (!Channel.instances.containsKey(type)) return false;
-
-        return Channel.instances.get(type).containsKey(name);
-    }
-
-    private static boolean exists(final Channel channel) {
-        return Channel.exists(channel.type, channel.name);
-    }
-
-    public static boolean exists(final Player player) {
-        return Channel.exists(Channel.Type.PLAYER, player.getName());
-    }
-
-    public static boolean exists(final Server server) {
-        return Channel.exists(Channel.Type.SERVER, server.getName());
-    }
-
-    public static boolean exists(final World world) {
-        return Channel.exists(Channel.Type.WORLD, world.getName());
-    }
-
-    public static boolean exists(final Plugin plugin) {
-        return Channel.exists(Channel.Type.LOG, plugin.getDescription().getName());
-    }
-
-    public static boolean exists(final String name) {
-        return Channel.exists(Channel.Type.CUSTOM, name);
-    }
-
-    public static boolean disposeInstance(final Channel channel) {
-        if (!Channel.exists(channel)) return false;
-
-        Channel.instances.get(channel.type).remove(channel.name);
-        return true;
-    }
-
-    public static boolean disposeInstance(final Channel.Type type, final String name) {
-        if (!Channel.exists(type, name)) return false;
-
-        Channel.disposeInstance(Channel.getInstance(type, name));
-        return true;
-    }
-
-    public static boolean disposeInstance(final Player player) {
-        return Channel.disposeInstance(Channel.Type.PLAYER, player.getName());
-    }
-
-    public static boolean disposeInstance(final Server server) {
-        return Channel.disposeInstance(Channel.Type.SERVER, server.getName());
-    }
-
-    public static boolean disposeInstance(final World world) {
-        return Channel.disposeInstance(Channel.Type.WORLD, world.getName());
-    }
-
-    public static boolean disposeInstance(final Plugin plugin) {
-        return Channel.disposeInstance(Channel.Type.LOG, plugin.getDescription().getName());
-    }
-
-    public static boolean disposeInstance(final String name) {
-        return Channel.disposeInstance(Channel.Type.CUSTOM, name);
+        message = this.format(owner, message, level);
+        for (final Recipient recipient : this.members) recipient.send(message, applyTimestamp);
+        return message;
     }
 
     @Override
     public String toString() {
-        return "[" + this.type + ";" + this.name + "]";
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((this.name == null) ? 0 : this.name.toLowerCase().hashCode());
-        result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
-        return result;
-    }
-
-    @Override
-    public boolean equals(final Object other) {
-        if (this == other) return true;
-        if (other == null) return false;
-
-        if (!(other instanceof Channel)) return false;
-        final Channel that = (Channel) other;
-        if (!that.canEqual(this)) return false;
-
-        if (this.type != that.type) return false;
-        if (!this.name.equalsIgnoreCase(that.name)) return false;
-
-        return true;
-    }
-
-    public boolean canEqual(final Object other) {
-        return (other instanceof Channel);
+        return "#" + this.type + ";" + this.name + ";" + this.members.size() + "#";
     }
 
     public enum Type {
-        PLAYER, SERVER, WORLD, CUSTOM, LOG
+        CUSTOM, PLAYER, SERVER, WORLD
     }
+
 }

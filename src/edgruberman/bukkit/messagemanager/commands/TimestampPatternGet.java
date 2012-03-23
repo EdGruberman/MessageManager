@@ -4,6 +4,7 @@ import org.bukkit.OfflinePlayer;
 
 import edgruberman.bukkit.messagemanager.Main;
 import edgruberman.bukkit.messagemanager.MessageLevel;
+import edgruberman.bukkit.messagemanager.channels.Recipient;
 import edgruberman.bukkit.messagemanager.commands.util.Action;
 import edgruberman.bukkit.messagemanager.commands.util.Context;
 import edgruberman.bukkit.messagemanager.commands.util.Parser;
@@ -22,7 +23,7 @@ final class TimestampPatternGet extends Action {
         OfflinePlayer target = Parser.parsePlayer(context, position);
         if (target == null && context.sender instanceof OfflinePlayer) target = (OfflinePlayer) context.sender;
         if (target == null) {
-            Main.messageManager.respond(context.sender, "Unable to determine player", MessageLevel.SEVERE, false);
+            Main.messageManager.send(context.sender, "Unable to determine player", MessageLevel.SEVERE, false);
             return false;
         }
 
@@ -32,18 +33,18 @@ final class TimestampPatternGet extends Action {
 
         // Verify requester has permission for player
         if (!Timestamp.isAllowed(context.sender, this.permission, targetName)) {
-            Main.messageManager.respond(context.sender, "You are not allowed to use the " + this.getNamePath() + " action of the " + context.label + " command for " + target.getName(), MessageLevel.RIGHTS, false);
+            Main.messageManager.send(context.sender, "You are not allowed to use the " + this.getNamePath() + " action of the " + context.label + " command for " + target.getName(), MessageLevel.RIGHTS, false);
             return true;
         }
 
-        final edgruberman.bukkit.messagemanager.channels.Timestamp timestamp = Main.timestampFor(targetName);
-        Main.messageManager.respond(context.sender, targetName + "'s Timestamp " + TimestampPatternGet.message(timestamp), MessageLevel.STATUS, false);
+        final Recipient recipient = Timestamp.getRecipient(target);
+        Main.messageManager.send(context.sender, "Timestamp pattern for " + targetName + ": " + TimestampPatternGet.message(recipient), MessageLevel.STATUS, false);
 
         return true;
     }
 
-    static String message(final edgruberman.bukkit.messagemanager.channels.Timestamp timestamp) {
-        return "Pattern: " + timestamp.getPattern();
+    static String message(final Recipient recipient) {
+        return recipient.getTimestamp().toPattern();
     }
 
 }

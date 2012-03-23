@@ -22,7 +22,7 @@ class TimestampReset extends Action {
         OfflinePlayer target = Parser.parsePlayer(context, 1);
         if (target == null && context.sender instanceof OfflinePlayer) target = (OfflinePlayer) context.sender;
         if (target == null) {
-            Main.messageManager.respond(context.sender, "Unable to determine player", MessageLevel.SEVERE, false);
+            Main.messageManager.send(context.sender, "Unable to determine player", MessageLevel.SEVERE, false);
             return false;
         }
 
@@ -30,22 +30,14 @@ class TimestampReset extends Action {
         if (target.getPlayer() != null) targetName = target.getPlayer().getName();
 
         if (!Timestamp.isAllowed(context.sender, this.permission, targetName)) {
-            Main.messageManager.respond(context.sender, "You are not allowed to use the " + this.getNamePath() + " action for " + target.getName(), MessageLevel.RIGHTS, false);
+            Main.messageManager.send(context.sender, "You are not allowed to use the " + this.getNamePath() + " action for " + target.getName(), MessageLevel.RIGHTS, false);
             return true;
         }
 
-        // Reset recipient file configuration
-        Main.saveRecipient(targetName, null, null);
+        final Recipient recipient = Timestamp.getRecipient(target);
+        recipient.reset();
 
-        // Update recipient if online
-        if (target.getPlayer() != null) {
-            Recipient.getInstance(target.getPlayer()).setTimestamp(Main.timestampFor(targetName));
-            Recipient.getInstance(target.getPlayer()).setUseTimestamp(Main.useTimestampFor(targetName));
-        }
-
-        // Respond with verification
-        Main.messageManager.respond(context.sender, targetName + "'s Timestamp has been reset to default", MessageLevel.STATUS, false);
-
+        Main.messageManager.send(context.sender, "Timestamp reset for: " + targetName, MessageLevel.STATUS, false);
         return true;
     }
 

@@ -1,43 +1,43 @@
 package edgruberman.bukkit.messagemanager.channels;
 
-import org.bukkit.entity.Player;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.Plugin;
 
+/**
+ * CommandSender (Players and consoles) Collection
+ */
 public final class PlayerChannel extends Channel {
-    
-    private Player player;
-    
-    PlayerChannel(final Player player) {
-        super(Channel.Type.PLAYER, player.getName());
-        this.player = player;
-        this.resetMembers();
+
+    static final Map<Plugin, ChannelConfiguration> configuration = new HashMap<Plugin, ChannelConfiguration>();
+
+    private final CommandSender target;
+
+    PlayerChannel(final CommandSender target) {
+        super(Channel.Type.PLAYER, target.getName());
+        this.target = target;
+        this.reset();
     }
-    
-    public Player getPlayer() {
-        return this.player;
+
+    public CommandSender getTarget() {
+        return this.target;
     }
-    
+
+    public void reset() {
+        super.clear();
+        super.add(this.target);
+    }
+
     @Override
-    public void resetMembers() {
-        super.resetMembers();
-        super.addMember(this.player);
+    public ChannelConfiguration getConfiguration(final Plugin owner) {
+        return PlayerChannel.configuration.get(owner);
     }
-    
+
     @Override
-    public boolean equals(final Object other) {
-        if (this == other) return true;
-        if (other == null) return false;
-        
-        if (!(other instanceof PlayerChannel)) return false;
-        PlayerChannel that = (PlayerChannel) other;
-        if (!that.canEqual(this)) return false;
-        if (!super.equals(that)) return false;
-        
-        return true;
+    public ChannelConfiguration setConfiguration(final Plugin owner, final ChannelConfiguration configuration) {
+        return PlayerChannel.configuration.put(owner, configuration);
     }
-    
-    @Override
-    public boolean canEqual(final Object other) {
-        return (other instanceof PlayerChannel);
-    }
+
 }
