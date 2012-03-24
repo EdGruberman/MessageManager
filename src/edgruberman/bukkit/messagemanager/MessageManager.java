@@ -2,12 +2,8 @@ package edgruberman.bukkit.messagemanager;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Stack;
 import java.util.logging.Level;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
@@ -33,70 +29,6 @@ public final class MessageManager {
 
     public static Dispatcher getDispatcher() {
         return MessageManager.dispatcher;
-    }
-
-    /**
-     * Convert color codes to characters Minecraft will convert to color.
-     * No base color defined. (Minecraft client will use white by default.)
-     *
-     * @param message text to convert any existing color codes for
-     * @return text converted to Minecraft recognized coloring
-     */
-    public static String colorize(final String message) {
-        return MessageManager.colorize((ChatColor) null, message);
-    }
-
-    /**
-     * Convert color codes to characters Minecraft will convert to color.
-     *
-     * @param base starting color to use for message
-     * @param message text to convert an existing color codes for
-     * @return text converted to Minecraft recognized coloring
-     */
-    public static String colorize(final ChatColor base, final String message) {
-        final Stack<String> colors = new Stack<String>();
-        colors.push((base != null ? base.toString() : ""));
-
-        final StringBuffer colorized = new StringBuffer();
-
-        final Pattern p = Pattern.compile("(?i)&(&|[0-9A-FK-OR]|_)");
-        final Matcher m = p.matcher(message);
-        while (m.find()) {
-            // Replace escaped ampersand with single ampersand.
-            if (m.group(1).equals("&")) {
-                m.appendReplacement(colorized, "&");
-                continue;
-            }
-
-            // Replace closure marker with previous color on stack.
-            if (m.group(1).equals("_")) {
-                if (colors.size() > 1) colors.pop();
-                m.appendReplacement(colorized, colors.peek());
-                continue;
-            }
-
-            // Replace hex code with color.
-            final ChatColor color = ChatColor.getByChar(m.group(1).toLowerCase());
-            if (color == null) continue;
-
-            colors.push(color.toString());
-            m.appendReplacement(colorized, colors.peek());
-        }
-        m.appendTail(colorized);
-
-        return (base != null ? base.toString() : "") + colorized.toString();
-    }
-
-    /**
-     * Strips the given message of all MessageManager color codes.
-     *
-     * @param input string to strip of color
-     * @return copy of the input string, without any color codes
-     */
-    public static String stripColor(final String input) {
-        if (input == null) return null;
-
-        return input.replaceAll("(?i)&[0-9A-FK-OR]", "");
     }
 
     /**

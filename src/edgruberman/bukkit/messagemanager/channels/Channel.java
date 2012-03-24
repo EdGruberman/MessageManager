@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import edgruberman.bukkit.messagemanager.Main;
+import edgruberman.bukkit.messagemanager.MessageColor;
 import edgruberman.bukkit.messagemanager.MessageLevel;
 import edgruberman.bukkit.messagemanager.MessageManager;
 
@@ -97,7 +98,7 @@ public abstract class Channel {
 
     public String format(final Plugin owner, String message, final MessageLevel level) {
         message = String.format(this.getConfiguration(owner).format, message, this.name);
-        return MessageManager.colorize(this.getConfiguration(owner).getColor(level), message);
+        return MessageColor.colorize(this.getConfiguration(owner).getColor(level), message);
     }
 
     public String send(final Plugin owner, String message, final MessageLevel level, final boolean applyTimestamp) {

@@ -11,7 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 
 import edgruberman.bukkit.messagemanager.ConfigurationFile;
-import edgruberman.bukkit.messagemanager.MessageManager;
+import edgruberman.bukkit.messagemanager.MessageColor;
 
 /**
  * Timestamp Formatter
@@ -65,7 +65,7 @@ public final class Recipient {
     }
 
     public void setFormat(final String format) {
-        this.formatColorized = MessageManager.colorize(format);
+        this.formatColorized = MessageColor.colorize(format);
         this.format = format;
     }
 
