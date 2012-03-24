@@ -59,7 +59,7 @@ public final class MessageManager {
 
         final StringBuffer colorized = new StringBuffer();
 
-        final Pattern p = Pattern.compile("(?i)&(&|[0-9A-FK]|_)");
+        final Pattern p = Pattern.compile("(?i)&(&|[0-9A-FK-OR]|_)");
         final Matcher m = p.matcher(message);
         while (m.find()) {
             // Replace escaped ampersand with single ampersand.
@@ -96,7 +96,7 @@ public final class MessageManager {
     public static String stripColor(final String input) {
         if (input == null) return null;
 
-        return input.replaceAll("(?i)&[0-9A-FK]", "");
+        return input.replaceAll("(?i)&[0-9A-FK-OR]", "");
     }
 
     /**
