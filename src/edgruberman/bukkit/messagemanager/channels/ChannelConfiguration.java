@@ -1,6 +1,9 @@
 package edgruberman.bukkit.messagemanager.channels;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -18,26 +21,27 @@ public class ChannelConfiguration {
     public static final MessageLevel DEFAULT_LEVEL_CHANNEL = MessageLevel.ALL;
     public static final MessageLevel DEFAULT_LEVEL_LOG = MessageLevel.ALL;
     public static final String DEFAULT_FORMAT = "%1$s"; // 1 = Message, 2 = Channel Name
-    public static final ChatColor DEFAULT_COLOR = ChatColor.WHITE;
+    public static final List<ChatColor> DEFAULT_DISPLAY = new ArrayList<ChatColor>(Arrays.asList(ChatColor.WHITE));
 
     public MessageLevel levelChannel = ChannelConfiguration.DEFAULT_LEVEL_CHANNEL;
     public MessageLevel levelLog = ChannelConfiguration.DEFAULT_LEVEL_LOG;
     public String format = ChannelConfiguration.DEFAULT_FORMAT;
-    private final Map<MessageLevel, ChatColor> colors = new HashMap<MessageLevel, ChatColor>();
+    private final Map<MessageLevel, List<ChatColor>> color = new HashMap<MessageLevel, List<ChatColor>>();
 
     ChannelConfiguration() {}
 
     private ChannelConfiguration(final ChannelConfiguration other) {
+        this();
         this.levelChannel = other.levelChannel;
         this.levelLog = other.levelLog;
         this.format = other.format;
-        this.colors.putAll(other.colors);
+        this.color.putAll(other.color);
     }
 
-    public ChatColor getColor(final MessageLevel level) {
-        if (!this.colors.containsKey(level)) return ChannelConfiguration.DEFAULT_COLOR;
+    public List<ChatColor> getColor(final MessageLevel level) {
+        if (!this.color.containsKey(level)) return ChannelConfiguration.DEFAULT_DISPLAY;
 
-        return this.colors.get(level);
+        return this.color.get(level);
     }
 
     public static void load(final Plugin owner, final ConfigurationFile local) {
@@ -85,16 +89,40 @@ public class ChannelConfiguration {
                         continue;
                     }
 
-                    final ChatColor color;
-                    try {
-                        color = ChatColor.valueOf(colors.getString(levelName));
-                    } catch (final Exception e) {
-                        Main.logger.log(Level.WARNING, "Unable to determine ChatColor from " + local.getFile().getPath() + "; " + type.name() + ".color." + levelName + ": " + colors.getString(levelName));
-                        continue;
+
+
+                    if (colors.isList(levelName)) {
+                        // Multiple codes
+                        configuration.color.put(colorLevel, new ArrayList<ChatColor>());
+                        for (final String item : colors.getStringList(levelName)) {
+                            final ChatColor color;
+                            try {
+                                color = ChatColor.valueOf(item);
+                            } catch (final Exception e) {
+                                Main.logger.log(Level.WARNING, "Unable to determine ChatColor from " + local.getFile().getPath() + "; " + type.name() + ".color." + levelName + ": " + item);
+                                continue;
+                            }
+                            configuration.color.get(colorLevel).add(color);
+                        }
+                    } else {
+                        // Single code
+                        configuration.color.put(colorLevel, new ArrayList<ChatColor>());
+                        final ChatColor color;
+                        try {
+                            color = ChatColor.valueOf(colors.getString(levelName));
+                        } catch (final Exception e) {
+                            Main.logger.log(Level.WARNING, "Unable to determine ChatColor from " + local.getFile().getPath() + "; " + type.name() + ".color." + levelName + ": " + colors.getString(levelName));
+                            continue;
+                        }
+                        configuration.color.get(colorLevel).add(color);
                     }
 
-                    Main.logger.log(Level.FINE, "Override specified in " + local.getFile().getPath() + "; " + type.name() + ".color." + colorLevel + ": " + color.name());
-                    configuration.colors.put(colorLevel, color);
+                    String colorNames = "";
+                    for (final ChatColor c : configuration.color.get(colorLevel)) {
+                        if (!colorNames.equals("")) colorNames += ", ";
+                        colorNames += c.name();
+                    }
+                    Main.logger.log(Level.FINE, "Override specified in " + local.getFile().getPath() + "; " + type.name() + ".color." + colorLevel + ": " + colorNames);
                 }
             }
 
