@@ -34,19 +34,22 @@ public final class Dispatcher implements Listener {
 
     public Dispatcher(final Plugin plugin) {
         this.plugin = plugin;
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+    }
+
+    public void init() {
+        // Ensure recipients and channels are configured for existing players
+        for (final Player player : this.plugin.getServer().getOnlinePlayers()) {
+            this.createRecipient(player);
+            this.register(new PlayerChannel(player));
+        }
 
         // Ensure server channel exists
-        this.register(new ServerChannel(plugin.getServer()));
-
-        // Ensure channels are configured for existing players
-        for (final Player player : plugin.getServer().getOnlinePlayers())
-            this.register(new PlayerChannel(player));
+        this.register(new ServerChannel(this.plugin.getServer()));
 
         // Ensure channels are configured for existing worlds
-        for (final World world : plugin.getServer().getWorlds())
+        for (final World world : this.plugin.getServer().getWorlds())
             this.register(new WorldChannel(world));
-
-        this.plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
     public boolean register(final Channel channel) {
@@ -148,8 +151,7 @@ public final class Dispatcher implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(final PlayerJoinEvent event) {
-        final Recipient recipient = new Recipient((CommandSender) event.getPlayer());
-        this.recipients.put(recipient.getTarget(), recipient);
+        this.createRecipient(event.getPlayer());
         this.register(new PlayerChannel(event.getPlayer()));
         this.getChannel(event.getPlayer().getServer()).add(event.getPlayer());
         this.getChannel(event.getPlayer().getWorld()).add(event.getPlayer());
@@ -171,11 +173,19 @@ public final class Dispatcher implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onServerCommand(final ServerCommandEvent event) {
         if (this.getRecipient(event.getSender()) == null) {
-            final Recipient recipient = new Recipient(event.getSender());
-            this.recipients.put(recipient.getTarget(), recipient);
+            this.createRecipient(event.getSender());
             this.register(new PlayerChannel(event.getSender()));
         }
         // TODO determine when to unregister a console based channel and remove the recipient
+    }
+
+    private Recipient createRecipient(final CommandSender target) {
+        final Recipient existing = this.recipients.get(target);
+        if (existing != null) return existing;
+
+        final Recipient recipient = new Recipient(target);
+        this.recipients.put(recipient.getTarget(), recipient);
+        return recipient;
     }
 
 }

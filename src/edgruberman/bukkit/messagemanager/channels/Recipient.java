@@ -38,13 +38,13 @@ public final class Recipient {
     private String formatColorized;
     final Set<Channel> memberships = new HashSet<Channel>();
 
-    public Recipient(final CommandSender target) {
-        this(target.getClass().getSimpleName(), target.getName());
-        this.target = target;
-    }
-
     public Recipient(final OfflinePlayer target) {
         this("CraftPlayer", target.getName());
+    }
+
+    Recipient(final CommandSender target) {
+        this(target.getClass().getSimpleName(), target.getName());
+        this.target = target;
     }
 
     Recipient(final String targetClassName, final String targetName) {

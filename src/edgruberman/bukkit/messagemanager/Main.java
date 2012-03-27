@@ -37,6 +37,7 @@ public final class Main extends JavaPlugin {
         Recipient.configurationFile.load();
 
         MessageManager.dispatcher = new Dispatcher(this);
+        MessageManager.dispatcher.init();
         Main.messageManager = new MessageManager(this);
 
         new edgruberman.bukkit.messagemanager.commands.MessageManager(this);
