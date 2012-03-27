@@ -27,6 +27,12 @@ public final class MessageManager {
     static Dispatcher dispatcher = null;
     static Map<Plugin, MessageManager> instances = new HashMap<Plugin, MessageManager>();
 
+    public static MessageManager of(final Plugin plugin) {
+        MessageManager manager = MessageManager.instances.get(plugin);
+        if (manager == null) manager = new MessageManager(plugin);
+        return manager;
+    }
+
     public static Dispatcher getDispatcher() {
         return MessageManager.dispatcher;
     }
