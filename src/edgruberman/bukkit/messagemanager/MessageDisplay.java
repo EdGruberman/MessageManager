@@ -98,10 +98,12 @@ public class MessageDisplay {
                 continue;
             }
 
-            // Replace reset code with reset and base display
+            // Replace reset code with reset and base display and revert current state to base
             if (m.group(1).equals(MessageDisplay.RESET)) {
                 m.appendReplacement(converted, ChatColor.RESET.toString());
-                if (base.size() != 0) for (final ChatColor code : base) converted.append(code.toString());
+                for (final ChatColor code : base) converted.append(code.toString());
+                state.clear();
+                state.addAll(base);
                 continue;
             }
 
