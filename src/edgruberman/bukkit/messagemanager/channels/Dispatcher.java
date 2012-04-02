@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -137,6 +138,15 @@ public final class Dispatcher implements Listener {
 
     public Recipient getRecipient(final CommandSender target) {
         return this.recipients.get(target);
+    }
+
+    public Recipient getRecipient(final String name) {
+        final OfflinePlayer target = this.plugin.getServer().getOfflinePlayer(name);
+
+        if (target.getPlayer() != null)
+            return this.getRecipient(target.getPlayer());
+
+        return new Recipient(target);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
