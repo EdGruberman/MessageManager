@@ -66,5 +66,5 @@ CUSTOM:
         FINE: BLACK
         FINER: BLACK
         FINEST: BLACK
-log: '[%3$s] [%4$s] %2$s %1$s' # 1 = Message, 2 = Channel Description, 3 = Originating Plugin, 4 = Message Level
+log: '[%3$s] [%4$s] %2$s %1$s' # 1 = Message, 2 = Channel Definition, 3 = Originating Plugin, 4 = Message Level
 version: @VERSION@

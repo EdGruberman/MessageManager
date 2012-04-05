@@ -4,7 +4,6 @@ package edgruberman.bukkit.messagemanager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,10 +15,9 @@ import org.bukkit.ChatColor;
 public class MessageDisplay {
 
     private static final String MARKER = "&";
-    private static final String CLOSURE = "_";
-    private static final String RESET = "*";
+    private static final String BASE = "_";
     private static final String VALUES = "[0-9A-FK-ORa-fk-or]";
-    private static final Pattern CODE = Pattern.compile(MessageDisplay.MARKER + "(" + MessageDisplay.MARKER + "|" + MessageDisplay.CLOSURE + "|\\" + MessageDisplay.RESET + "|" + MessageDisplay.VALUES + ")");
+    private static final Pattern CODE = Pattern.compile(MessageDisplay.MARKER + "(" + MessageDisplay.MARKER + "|" + MessageDisplay.BASE + "|" + MessageDisplay.VALUES + ")");
     private static final Pattern DUPLICATES = Pattern.compile("(" + ChatColor.COLOR_CHAR + MessageDisplay.VALUES + ")\\1", Pattern.CASE_INSENSITIVE);
 
     /**
@@ -57,64 +55,29 @@ public class MessageDisplay {
     public static String translate(final List<ChatColor> base, final String message) {
         if (base == null) throw new IllegalArgumentException("translation base can not be null");
 
-        final Stack<ChatColor> state = new Stack<ChatColor>();
         final StringBuffer converted = new StringBuffer();
-
-        state.addAll(base);
         for (final ChatColor code : base) converted.append(code.toString());
 
         final Matcher m = MessageDisplay.CODE.matcher(message);
         while (m.find()) {
             // Replace escaped marker with single marker
             if (m.group(1).equals(MessageDisplay.MARKER)) {
-                m.appendReplacement(converted, String.valueOf(MessageDisplay.MARKER));
+                m.appendReplacement(converted, m.group(1));
                 continue;
             }
 
-            // Replace closure code with previous state
-            if (m.group(1).equals(MessageDisplay.CLOSURE)) {
-                m.appendReplacement(converted, "");
-                if (state.size() == 0) continue;
-
-                final ChatColor removed = state.pop();
-
-                // Apply reset if format was removed
-                if (removed.isFormat()) converted.append(ChatColor.RESET.toString());
-
-                // Apply last color
-                for (int i = state.size() - 1; i >= 0; i--) {
-                    final ChatColor code = state.get(i);
-                    if (code.isColor()) {
-                        converted.append(code.toString());
-                        break;
-                    }
-                }
-
-                // Re-apply all previous formats if format was removed (need to be after color to take effect)
-                if (removed.isFormat())
-                    for (final ChatColor code : state)
-                        if (code.isFormat()) converted.append(code.toString());
-
-                continue;
-            }
-
-            // Replace reset code with reset and base display and revert current state to base
-            if (m.group(1).equals(MessageDisplay.RESET)) {
+            // Replace base code with reset and base
+            if (m.group(1).equals(MessageDisplay.BASE)) {
                 m.appendReplacement(converted, ChatColor.RESET.toString());
                 for (final ChatColor code : base) converted.append(code.toString());
-                state.clear();
-                state.addAll(base);
                 continue;
             }
 
             // Replace message code with Minecraft code
             final ChatColor code = ChatColor.getByChar(m.group(1).toLowerCase());
-            state.push(code);
-            m.appendReplacement(converted, state.peek().toString());
+            m.appendReplacement(converted, code.toString());
         }
         m.appendTail(converted);
-
-        // TODO Remove codes that won't change display due to another code overriding it before more text
 
         // Remove duplicate codes
         return MessageDisplay.DUPLICATES.matcher(converted).replaceAll("$1");
