@@ -17,9 +17,9 @@ public final class Main extends JavaPlugin {
     public static MessageManager messageManager;
     public static ConfigurationFile configurationFile;
 
-    public static final String MINIMUM_CONFIGURATION_VERSION = "6.0.0a38";
-    public static final String MINIMUM_RECIPIENTS_VERSION = "6.0.0a0";
-    public static final String MINIMUM_MESSAGE_MANAGER_VERSION = "6.0.0a0";
+    public static final String MINIMUM_CONFIGURATION_VERSION = "6.0.0";
+    public static final String MINIMUM_RECIPIENTS_VERSION = "6.0.0";
+    public static final String MINIMUM_MESSAGE_MANAGER_VERSION = "6.0.0";
 
     @Override
     public void onEnable() {
